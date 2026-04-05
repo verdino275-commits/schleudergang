@@ -973,7 +973,7 @@ function animDice(result,ms,cb){
 // ── UI ───────────────────────────────────────────────────────
 function updateUI(){
   if(!G)return;
-  if(!moveAnim)renderBoard();
+  renderBoard();
   // Show synced notification to all players
   // Rematch screen
   if(G.rematch&&G.rematch.phase&&G.rematch.phase!=='cancelled'){
