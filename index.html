@@ -882,15 +882,20 @@ function kick(myIdx,pos){
 }
 function moveTo(idx,rawPos){
   const p=G.players[idx];
+  const fromPos=p.pos;
   let np=rawPos;
   if(p.pos<29&&np>=29)np=29;
   if(np>34)np=34;
   np=arrows(np);
   if(p.wasKicked&&p.pos>=0&&p.pos<10&&np>=10&&np<29){
     G.pending={type:'shortcut_choose',intendedPos:np};
-    G.phase='effect';p.pos=10;kick(idx,10);clearSchranke(idx);return 10;
+    G.phase='effect';p.pos=10;
+    startMoveAnim(fromPos,10,idx);
+    kick(idx,10);clearSchranke(idx);return 10;
   }
-  p.pos=np;kick(idx,np);
+  p.pos=np;
+  startMoveAnim(fromPos,np,idx);
+  kick(idx,np);
   if(np===0)clearSchranke(idx);
   return np;
 }
@@ -904,10 +909,10 @@ function afterMove(idx){
   if(t==='schlB'){
     if(p.visitedSchlB){addLog(`${p.name} auf F22 – kein Effekt (2. Besuch).`);endPhase();return;}
     p.visitedSchlB=true;
-    if(p.wasKicked){p.pos=10;kick(idx,10);addLog(`💫 ${p.name}→F10! Abkürzung verfügbar!`);
+    if(p.wasKicked){const fp=p.pos;p.pos=10;startMoveAnim(fp,10,idx);kick(idx,10);addLog(`💫 ${p.name}→F10! Abkürzung verfügbar!`);
       notify('💫',`${p.name} wird auf Feld 10 zurückgeschleudert! Abkürzung verfügbar.`);
       G.phase='effect';G.pending={type:'shortcut_choose',intendedPos:10};return;}
-    p.pos=10;kick(idx,10);clearSchranke(idx);addLog(`💫 ${p.name}→F10!`);
+    const fp2=p.pos;p.pos=10;startMoveAnim(fp2,10,idx);kick(idx,10);clearSchranke(idx);addLog(`💫 ${p.name}→F10!`);
     notify('💫',`${p.name} wird auf Feld 10 zurückgeschleudert!`);
     endPhase();return;
   }
@@ -1048,11 +1053,11 @@ function showWin(){
 
 // ── HANDLERS ────────────────────────────────────────────────
 function disableBtn(){document.querySelectorAll('#abtns button').forEach(b=>b.disabled=true);}
-function onStartRoll(){disableBtn();const r=d6();animDice(r,700,v=>{const p=G.players[G.turn];if(v===6){p.pos=0;clearSchranke(G.turn);addLog(`🎉 ${p.name} würfelt 6→Schrankenfeld!`);G.phase='schranken';if(G.turn===MY_IDX)notify('🎲',`${p.name} würfelt eine 6 → Schrankenfeld!`);}else{G.rollsLeft--;addLog(`${p.name} würfelt ${v}.`);if(G.rollsLeft<=0){addLog(`❌ Kein 6 in 3 Versuchen.`);endPhase();}}push();});}
+function onStartRoll(){disableBtn();const r=d6();animDice(r,700,v=>{const p=G.players[G.turn];if(v===6){const from=p.pos;p.pos=0;startMoveAnim(from,0,G.turn);clearSchranke(G.turn);addLog(`🎉 ${p.name} würfelt 6→Schrankenfeld!`);G.phase='schranken';if(G.turn===MY_IDX)notify('🎲',`${p.name} würfelt eine 6 → Schrankenfeld!`);}else{G.rollsLeft--;addLog(`${p.name} würfelt ${v}.`);if(G.rollsLeft<=0){addLog(`❌ Kein 6 in 3 Versuchen.`);endPhase();}}push();});}
 function onSchrankenRoll(){disableBtn();const r=d6();animDice(r,700,v=>{const p=G.players[G.turn];if(v===1){p.pos=-1;addLog(`${p.name} würfelt 1→Start!`);endPhase();notify('↩',`${p.name} würfelt 1 → zurück auf den Startteller!`);}else{const np=moveTo(G.turn,v);addLog(`${p.name} würfelt ${v}→${fn(np)}`);afterMove(G.turn);}push();});}
 function onRoll(){disableBtn();const r=d6();animDice(r,700,v=>{const p=G.players[G.turn];if(p.pos>=29&&p.pos<=33){G.phase='becher';handleBecher(v);return;}const np=moveTo(G.turn,p.pos+v);addLog(`${p.name} würfelt ${v}→${fn(np)}${v===6?' 🎲 Nochmal!':''}`);if(v===6&&G.phase!=='effect'&&G.winner<0){afterMove(G.turn);if(G.phase!=='effect'){G.phase='roll';addLog(`🎲 ${p.name} nochmal würfeln!`);notify('🎲',`${p.name} würfelt eine 6 – nochmal würfeln!`);}}else{afterMove(G.turn);}push();});}
 function onBecherRoll(){disableBtn();const r=d6();animDice(r,700,v=>handleBecher(v));}
-function handleBecher(v){const p=G.players[G.turn];if(p.pos===33){if(v===2){p.pos=34;kick(G.turn,34);addLog(`${p.name} würfelt 2→Ziel🏆`);notify('🏆',`${p.name} würfelt eine 2 → Zielfeld! Noch 1 Wurf zum Sieg!`);}else if(v===1){p.pos=29;kick(G.turn,29);addLog(`${p.name} würfelt 1→B1!`);notify('😬',`${p.name} würfelt eine 1 auf B5 → zurück auf B1!`);}else{addLog(`${p.name} würfelt ${v}→wartet.`);notify('⏳',`${p.name} würfelt ${v} auf B5 – nur eine 2 bringt weiter!`);}}else{if(v%2===0){const np=Math.min(34,p.pos+1);p.pos=np;kick(G.turn,np);addLog(`${p.name} würfelt ${v}→${fn(np)}`);}else addLog(`${p.name} würfelt ${v}→bleibt.`);}endPhase();push();}
+function handleBecher(v){const p=G.players[G.turn];if(p.pos===33){if(v===2){const hfp=p.pos;p.pos=34;startMoveAnim(hfp,34,G.turn);kick(G.turn,34);addLog(`${p.name} würfelt 2→Ziel🏆`);notify('🏆',`${p.name} würfelt eine 2 → Zielfeld! Noch 1 Wurf zum Sieg!`);}else if(v===1){const hfp2=p.pos;p.pos=29;startMoveAnim(hfp2,29,G.turn);kick(G.turn,29);addLog(`${p.name} würfelt 1→B1!`);notify('😬',`${p.name} würfelt eine 1 auf B5 → zurück auf B1!`);}else{addLog(`${p.name} würfelt ${v}→wartet.`);notify('⏳',`${p.name} würfelt ${v} auf B5 – nur eine 2 bringt weiter!`);}}else{if(v%2===0){const np=Math.min(34,p.pos+1);const hfp3=p.pos;p.pos=np;startMoveAnim(hfp3,np,G.turn);kick(G.turn,np);addLog(`${p.name} würfelt ${v}→${fn(np)}`);}else addLog(`${p.name} würfelt ${v}→bleibt.`);}endPhase();push();}
 function onWinRoll(){disableBtn();const r=d6();animDice(r,500,v=>{addLog(`🏆 ${G.players[G.turn].name} würfelt ${v}→SIEG!`);notify('🏆',`🎉 ${G.players[G.turn].name} hat gewonnen!`);G.winner=G.turn;G.phase='done';push();});}
 function onSC(sc,dest){const p=G.players[G.turn];if(sc){const s=dest-10;const np=s>=5?22:10+s;p.pos=np;if(np===22)kick(G.turn,22);addLog(`✂ ${p.name} Abkürzung→${fn(np)}`);notify('✂',`${p.name} nimmt die Abkürzung → ${fn(np)}!`);}else{p.pos=dest;kick(G.turn,dest);addLog(`🛤 ${p.name} regulär→${fn(dest)}`);notify('🛤',`${p.name} nimmt den regulären Weg → ${fn(dest)}`);}G.pending=null;afterMove(G.turn);push();}
 function onTausch(di){const a=G.players[G.turn],b=G.players[di];const t=a.pos;a.pos=b.pos;b.pos=t;addLog(`🔄 ${a.name}↔${b.name}`);notify('🔄',`${a.name} (→${fn(b.pos)}) und ${b.name} (→${fn(a.pos)}) tauschen die Positionen!`);G.pending=null;endPhase();push();}
