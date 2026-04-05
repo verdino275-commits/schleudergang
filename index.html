@@ -174,6 +174,47 @@ html,body{background:var(--bg);color:var(--tx);font-family:'Segoe UI',system-ui,
 .modal-card h3{color:var(--tx);font-size:1.05em;margin-bottom:16px;text-align:center}
 .rule{margin-bottom:9px;font-size:.83em;line-height:1.6;color:#c4b5fd}
 .rule b{color:var(--tx)}
+/* ── DEBUG PANEL ──────────────────────────────────────────── */
+#debug-panel{position:fixed;inset:0;background:rgba(0,0,0,.95);z-index:900;
+  display:none;flex-direction:column;overflow-y:auto;padding:16px;
+  font-family:'Courier New',monospace}
+#debug-panel.show{display:flex}
+.dbg-header{display:flex;justify-content:space-between;align-items:center;
+  margin-bottom:14px;border-bottom:1px solid #333;padding-bottom:10px}
+.dbg-title{color:#22d3ee;font-size:1.1em;font-weight:bold;letter-spacing:2px}
+.dbg-close{background:#ef4444;border:none;border-radius:8px;color:#fff;
+  padding:7px 14px;cursor:pointer;font-weight:bold}
+.dbg-section{margin-bottom:16px}
+.dbg-section h4{color:#a855f7;font-size:.85em;letter-spacing:1px;
+  text-transform:uppercase;margin-bottom:8px;border-left:3px solid #a855f7;padding-left:8px}
+.dbg-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:7px;align-items:center}
+.dbg-label{color:#9ca3af;font-size:.78em;min-width:120px}
+.dbg-input{background:#1a1035;border:1px solid #333;border-radius:7px;
+  padding:7px 10px;color:#e9d5ff;font-size:.85em;outline:none;
+  font-family:'Courier New',monospace;flex:1;min-width:60px}
+.dbg-input:focus{border-color:#a855f7}
+.dbg-btn{background:linear-gradient(135deg,#a855f7,#6d28d9);border:none;
+  border-radius:8px;color:#fff;padding:8px 14px;cursor:pointer;
+  font-size:.82em;font-weight:bold;white-space:nowrap}
+.dbg-btn:active{transform:scale(.96)}
+.dbg-btn.cyan{background:linear-gradient(135deg,#06b6d4,#0e7490)}
+.dbg-btn.green{background:linear-gradient(135deg,#22c55e,#15803d)}
+.dbg-btn.red{background:linear-gradient(135deg,#ef4444,#991b1b)}
+.dbg-btn.orange{background:linear-gradient(135deg,#f97316,#9a3412)}
+.dbg-status{background:#0a0520;border:1px solid #1e1040;border-radius:8px;
+  padding:10px;font-size:.75em;color:#6ee7b7;max-height:120px;overflow-y:auto;
+  margin-top:8px;line-height:1.8}
+.dbg-player-row{display:flex;gap:8px;align-items:center;margin-bottom:6px;
+  background:rgba(255,255,255,.04);border-radius:8px;padding:8px}
+.dbg-pdot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.dbg-pname{color:#e9d5ff;font-size:.82em;min-width:80px}
+.dbg-flags{display:flex;gap:5px;flex-wrap:wrap}
+.dbg-flag{font-size:.7em;padding:2px 7px;border-radius:10px;cursor:pointer;
+  border:1px solid transparent}
+.dbg-flag.on{background:rgba(34,197,94,.2);border-color:rgba(34,197,94,.4);color:#86efac}
+.dbg-flag.off{background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1);color:#6b7280}
+.dbg-scenario-btns{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+
 #win-screen{position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:400;display:none;align-items:center;justify-content:center;padding:20px}
 /* Rematch */
 #rematch-screen{position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:450;display:none;align-items:center;justify-content:center;padding:20px;flex-direction:column;gap:12px}
@@ -270,6 +311,78 @@ html,body{background:var(--bg);color:var(--tx);font-family:'Segoe UI',system-ui,
     <div class="toast-msg" id="toast-msg"></div>
   </div>
 </div>
+<!-- DEBUG PANEL -->
+<div id="debug-panel">
+  <div class="dbg-header">
+    <div class="dbg-title">🛠 ADMIN DEBUG PANEL</div>
+    <button class="dbg-close" onclick="closeDebug()">✕ Schließen</button>
+  </div>
+
+  <!-- Spielstand Info -->
+  <div class="dbg-section">
+    <h4>📊 Aktueller Spielstand</h4>
+    <div id="dbg-status" class="dbg-status">Kein Spiel aktiv.</div>
+  </div>
+
+  <!-- Würfel erzwingen -->
+  <div class="dbg-section">
+    <h4>🎲 Würfelergebnis erzwingen</h4>
+    <div class="dbg-row">
+      <span class="dbg-label">Nächster Wurf:</span>
+      <input class="dbg-input" type="number" id="dbg-dice" min="1" max="6" value="6" style="max-width:60px">
+      <button class="dbg-btn cyan" onclick="dbgForceDice()">Setzen</button>
+      <button class="dbg-btn" onclick="dbgClearDice()">Reset</button>
+    </div>
+    <div id="dbg-dice-status" style="font-size:.75em;color:#9ca3af;margin-top:4px"></div>
+  </div>
+
+  <!-- Spieler teleportieren -->
+  <div class="dbg-section">
+    <h4>🚀 Spieler teleportieren</h4>
+    <div class="dbg-row">
+      <span class="dbg-label">Spieler:</span>
+      <select class="dbg-input" id="dbg-tp-player" style="max-width:140px"></select>
+    </div>
+    <div class="dbg-row">
+      <span class="dbg-label">Zu Feld:</span>
+      <input class="dbg-input" type="number" id="dbg-tp-field" min="-1" max="34" value="0" style="max-width:80px">
+      <button class="dbg-btn green" onclick="dbgTeleport()">Teleport!</button>
+    </div>
+    <div style="font-size:.72em;color:#6b7280;margin-top:2px">-1=Startteller, 0=Schranke, 10=SchlA, 14=Tausch, 22=SchlB, 29-33=Becher, 34=Ziel</div>
+  </div>
+
+  <!-- Spieler Flags -->
+  <div class="dbg-section">
+    <h4>🚩 Spieler Flags</h4>
+    <div id="dbg-flags"></div>
+  </div>
+
+  <!-- Zug übertragen -->
+  <div class="dbg-section">
+    <h4>🔄 Zug übertragen</h4>
+    <div class="dbg-row">
+      <span class="dbg-label">Spieler dran:</span>
+      <select class="dbg-input" id="dbg-turn-player" style="max-width:140px"></select>
+      <button class="dbg-btn orange" onclick="dbgSetTurn()">Setzen</button>
+    </div>
+  </div>
+
+  <!-- Schnell-Szenarien -->
+  <div class="dbg-section">
+    <h4>⚡ Schnell-Szenarien</h4>
+    <div class="dbg-scenario-btns">
+      <button class="dbg-btn cyan" onclick="dbgScenario('schleuder')">Test: Schleuderfeld</button>
+      <button class="dbg-btn cyan" onclick="dbgScenario('tausch')">Test: Tauschfeld</button>
+      <button class="dbg-btn cyan" onclick="dbgScenario('heraus')">Test: Herausforderung</button>
+      <button class="dbg-btn cyan" onclick="dbgScenario('becher')">Test: Becherzone</button>
+      <button class="dbg-btn cyan" onclick="dbgScenario('abkuerzung')">Test: Abkürzung</button>
+      <button class="dbg-btn cyan" onclick="dbgScenario('ziel')">Test: Zielfeld</button>
+      <button class="dbg-btn red" onclick="dbgScenario('reset')">Alle zurück zum Start</button>
+      <button class="dbg-btn green" onclick="dbgScenario('advance')">Spieler 1 → Feld 20</button>
+    </div>
+  </div>
+</div>
+
 <!-- REMATCH SCREEN -->
 <div id="rematch-screen">
   <div class="rm-card" id="rm-card-content"></div>
@@ -1172,7 +1285,140 @@ function submitNewPlayers(){
   push();
 }
 
+// ── DEBUG PANEL ─────────────────────────────────────────────
+let forcedDice=null;
+let dbgTapCount=0;
+let dbgTapTimer=null;
+
+// Secret activation: tap game title 5 times fast
+function initDebugTap(){
+  const title=document.querySelector('.game-title');
+  if(!title)return;
+  title.addEventListener('click',()=>{
+    dbgTapCount++;
+    if(dbgTapTimer)clearTimeout(dbgTapTimer);
+    dbgTapTimer=setTimeout(()=>dbgTapCount=0,2000);
+    if(dbgTapCount>=5){dbgTapCount=0;openDebug();}
+  });
+}
+
+function openDebug(){
+  if(!G){alert('Kein aktives Spiel!');return;}
+  updateDebugPanel();
+  document.getElementById('debug-panel').classList.add('show');
+}
+
+function closeDebug(){
+  document.getElementById('debug-panel').classList.remove('show');
+}
+
+function updateDebugPanel(){
+  if(!G)return;
+  // Status
+  const p=G.players[G.turn];
+  document.getElementById('dbg-status').innerHTML=
+    `Runde: Spieler ${G.turn+1} (${p?.name}) | Phase: ${G.phase}\n`+
+    G.players.map((pl,i)=>`  ${i===G.turn?'►':' '} ${pl.name}: Feld ${pl.pos<0?'Start':pl.pos} | wasKicked:${pl.wasKicked} | visitedSchlB:${pl.visitedSchlB}`).join('\n');
+
+  // Player selects
+  const opts=G.players.map((pl,i)=>`<option value="${i}">${pl.name}</option>`).join('');
+  ['dbg-tp-player','dbg-turn-player'].forEach(id=>{
+    const el=document.getElementById(id);if(el)el.innerHTML=opts;
+  });
+
+  // Flags
+  const flagsEl=document.getElementById('dbg-flags');
+  if(flagsEl){
+    flagsEl.innerHTML=G.players.map((pl,i)=>`
+      <div class="dbg-player-row">
+        <div class="dbg-pdot" style="background:${pl.color}"></div>
+        <div class="dbg-pname">${pl.name}</div>
+        <div class="dbg-flags">
+          <span class="dbg-flag ${pl.wasKicked?'on':'off'}" onclick="dbgToggleFlag(${i},'wasKicked')" title="Abkürzung freigeschaltet">wasKicked</span>
+          <span class="dbg-flag ${pl.visitedSchlB?'on':'off'}" onclick="dbgToggleFlag(${i},'visitedSchlB')" title="F22 schon besucht">visitedSchlB</span>
+          <span class="dbg-flag ${pl.kickedToSchranke?'on':'off'}" onclick="dbgToggleFlag(${i},'kickedToSchranke')" title="Via Rausschmiss auf Schranke">kickedToSchranke</span>
+        </div>
+      </div>`).join('');
+  }
+
+  // Dice status
+  const diceEl=document.getElementById('dbg-dice-status');
+  if(diceEl)diceEl.textContent=forcedDice?`⚡ Nächster Wurf erzwungen: ${forcedDice}`:'Kein Wurf erzwungen (normal)';
+}
+
+function dbgForceDice(){
+  const v=parseInt(document.getElementById('dbg-dice').value);
+  if(v>=1&&v<=6){forcedDice=v;updateDebugPanel();
+    showInfoBanner('🎲',`Debug: Nächster Wurf = ${v}`);}
+}
+function dbgClearDice(){forcedDice=null;updateDebugPanel();showInfoBanner('🎲','Debug: Würfel zurückgesetzt');}
+
+function dbgTeleport(){
+  if(!G)return;
+  const pi=parseInt(document.getElementById('dbg-tp-player').value);
+  const field=parseInt(document.getElementById('dbg-tp-field').value);
+  if(isNaN(pi)||isNaN(field))return;
+  G.players[pi].pos=Math.max(-1,Math.min(34,field));
+  addLog(`🛠 Debug: ${G.players[pi].name} → Feld ${field<0?'Startteller':field}`);
+  push();updateDebugPanel();showInfoBanner('🚀',`${G.players[pi].name} → Feld ${field<0?'Start':field}`);
+}
+
+function dbgToggleFlag(pi,flag){
+  if(!G)return;
+  G.players[pi][flag]=!G.players[pi][flag];
+  addLog(`🛠 Debug: ${G.players[pi].name}.${flag} = ${G.players[pi][flag]}`);
+  push();updateDebugPanel();
+}
+
+function dbgSetTurn(){
+  if(!G)return;
+  const ni=parseInt(document.getElementById('dbg-turn-player').value);
+  G.turn=ni;
+  const np=G.players[ni];
+  G.phase=np.pos<0?'start_roll':np.pos===0?'schranken':'roll';
+  G.rollsLeft=3;G.pending=null;
+  addLog(`🛠 Debug: Zug → ${np.name}`);
+  push();updateDebugPanel();showInfoBanner('🔄',`Debug: ${np.name} ist jetzt dran`);
+}
+
+function dbgScenario(type){
+  if(!G)return;
+  switch(type){
+    case 'schleuder':
+      G.players[G.turn].pos=9;G.phase='roll';
+      addLog('🛠 Debug: Schleuderfeld-Szenario (vor F22)');break;
+    case 'tausch':
+      G.players[G.turn].pos=13;G.phase='roll';
+      addLog('🛠 Debug: Tauschfeld-Szenario (vor F14)');break;
+    case 'heraus':
+      G.players[G.turn].pos=6;G.phase='roll';
+      addLog('🛠 Debug: Herausforderungs-Szenario (vor F7)');break;
+    case 'becher':
+      G.players[G.turn].pos=28;G.phase='roll';
+      addLog('🛠 Debug: Becherzone-Szenario (vor B1)');break;
+    case 'abkuerzung':
+      G.players[G.turn].pos=8;G.players[G.turn].wasKicked=true;G.phase='roll';
+      addLog('🛠 Debug: Abkürzungs-Szenario (vor F10, wasKicked=true)');break;
+    case 'ziel':
+      G.players[G.turn].pos=33;G.phase='becher';
+      addLog('🛠 Debug: Ziel-Szenario (auf B5)');break;
+    case 'reset':
+      G.players.forEach(p=>{p.pos=-1;p.kicked=false;p.wasKicked=false;p.visitedSchlB=false;p.kickedToSchranke=false;});
+      G.turn=0;G.phase='start_roll';G.rollsLeft=3;G.pending=null;
+      addLog('🛠 Debug: Alle Spieler zurückgesetzt');break;
+    case 'advance':
+      G.players[0].pos=20;G.phase='roll';
+      addLog('🛠 Debug: Spieler 1 → Feld 20');break;
+  }
+  push();updateDebugPanel();closeDebug();
+}
+
+// Hook into dice to allow forced values
+const _origD6=d6;
+function d6(){return forcedDice!==null?(()=>{const v=forcedDice;forcedDice=null;updateDebugPanel&&updateDebugPanel();return v;})():_origD6();}
+
 init();
+initDebugTap();
 
 // ── PWA SETUP ────────────────────────────────────────────────
 (function setupPWA(){
