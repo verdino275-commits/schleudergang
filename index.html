@@ -1290,15 +1290,41 @@ let forcedDice=null;
 let dbgTapCount=0;
 let dbgTapTimer=null;
 
-// Secret activation: tap game title 5 times fast
+// Activation methods:
+// 1. URL parameter: ?admin
+// 2. Click/tap title 5 times fast
+// 3. Keyboard: type 'admin' anywhere
 function initDebugTap(){
-  const title=document.querySelector('.game-title');
-  if(!title)return;
-  title.addEventListener('click',()=>{
-    dbgTapCount++;
-    if(dbgTapTimer)clearTimeout(dbgTapTimer);
-    dbgTapTimer=setTimeout(()=>dbgTapCount=0,2000);
-    if(dbgTapCount>=5){dbgTapCount=0;openDebug();}
+  // Method 1: URL parameter
+  if(window.location.search.includes('admin')){
+    setTimeout(()=>{
+      if(G) openDebug();
+      else{
+        // Wait for game to load
+        const iv=setInterval(()=>{if(G){clearInterval(iv);openDebug();}},500);
+        setTimeout(()=>clearInterval(iv),10000);
+      }
+    },800);
+  }
+
+  // Method 2: Click/tap title 5 times (works on both mouse and touch)
+  document.addEventListener('click', e=>{
+    const t=e.target;
+    if(t.classList.contains('game-title')||t.closest('.game-title')||
+       t.id==='topbar'||t.closest('#topbar')){
+      dbgTapCount++;
+      if(dbgTapTimer)clearTimeout(dbgTapTimer);
+      dbgTapTimer=setTimeout(()=>{dbgTapCount=0;},2500);
+      if(dbgTapCount>=5){dbgTapCount=0;if(G)openDebug();}
+    }
+  });
+
+  // Method 3: Type 'admin' anywhere on keyboard
+  let typed='';
+  document.addEventListener('keydown',e=>{
+    typed+=e.key.toLowerCase();
+    if(typed.length>5)typed=typed.slice(-5);
+    if(typed==='admin'){typed='';if(G)openDebug();}
   });
 }
 
@@ -1418,7 +1444,8 @@ const _origD6=d6;
 function d6(){return forcedDice!==null?(()=>{const v=forcedDice;forcedDice=null;updateDebugPanel&&updateDebugPanel();return v;})():_origD6();}
 
 init();
-initDebugTap();
+// Init debug after short delay to ensure DOM is ready
+setTimeout(initDebugTap, 500);
 
 // ── PWA SETUP ────────────────────────────────────────────────
 (function setupPWA(){
