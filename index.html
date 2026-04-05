@@ -604,7 +604,7 @@ function renderBoard(){
       const slotHW=0.5/n;
       const dist=Math.abs(t-slotCenter);
       let alpha=0;
-      if(dist<slotHW) alpha=Math.sin((dist/slotHW)*Math.PI*-1+Math.PI);
+      if(dist<slotHW) alpha=Math.pow(Math.cos(dist/slotHW*Math.PI*0.5),2);
       if(alpha>0.01){
         const px=sx(fx),py=sy(fy),pr=sr(FR);
         ctx.save();
