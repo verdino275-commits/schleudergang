@@ -591,7 +591,7 @@ function renderBoard(){
   // Shortcut fields
   SC.forEach((pos,i)=>drawSCField(pos[0],pos[1],`A${i+1}`,hiSC));
 
-  // Move animation overlay – sequential pulse per field
+  // Move animation overlay – sequential pulse, 3 sec total
   if(moveAnim){
     const elapsed=performance.now()-moveAnim.startTime;
     const t=Math.min(1,elapsed/moveAnim.duration);
@@ -600,22 +600,24 @@ function renderBoard(){
     path.forEach((fi,i)=>{
       if(fi<0||fi>=FP.length)return;
       const[fx,fy]=FP[fi];
-      // Each field gets an equal time slot; slight overlap for smooth look
       const slotCenter=(i+0.5)/n;
-      const slotHW=0.55/n;
+      const slotHW=0.5/n;
       const dist=Math.abs(t-slotCenter);
       let alpha=0;
-      if(dist<slotHW) alpha=Math.sin((1-dist/slotHW)*Math.PI*0.5);
-      alpha*=alpha; // sharper pulse
-      if(alpha>0.02){
+      if(dist<slotHW) alpha=Math.sin((dist/slotHW)*Math.PI*-1+Math.PI);
+      if(alpha>0.01){
+        const px=sx(fx),py=sy(fy),pr=sr(FR);
         ctx.save();
-        ctx.globalAlpha=alpha*0.9;
-        ctx.shadowColor='#ffffff';ctx.shadowBlur=sr(26);
-        ctx.strokeStyle='rgba(255,255,255,0.95)';ctx.lineWidth=sr(4);
-        ctx.beginPath();ctx.arc(sx(fx),sy(fy),sr(FR+4),0,Math.PI*2);ctx.stroke();
-        ctx.globalAlpha=alpha*0.18;
-        ctx.fillStyle='rgba(255,255,255,1)';
-        ctx.fill();
+        // Bright outer glow ring
+        ctx.globalAlpha=alpha;
+        ctx.shadowColor='#ffe066';ctx.shadowBlur=sr(36);
+        ctx.strokeStyle='rgba(255,224,80,1)';ctx.lineWidth=sr(5);
+        ctx.beginPath();ctx.arc(px,py,pr+sr(5),0,Math.PI*2);ctx.stroke();
+        ctx.shadowBlur=0;
+        // Bright fill overlay over field
+        ctx.globalAlpha=alpha*0.55;
+        ctx.fillStyle='rgba(255,240,120,1)';
+        ctx.beginPath();ctx.arc(px,py,pr,0,Math.PI*2);ctx.fill();
         ctx.restore();
       }
     });
@@ -950,8 +952,7 @@ function getMovePath(from,to){
 function startMoveAnim(from,to,playerIdx){
   const path=getMovePath(from,to);
   if(path.length===0)return;
-  const dur=Math.max(600,path.length*130);
-  moveAnim={path,from,to,playerIdx,startTime:performance.now(),duration:dur};
+  moveAnim={path,from,to,playerIdx,startTime:performance.now(),duration:3000};
   if(!moveAnimRAF)moveAnimLoop();
 }
 
