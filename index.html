@@ -591,6 +591,37 @@ function renderBoard(){
   // Shortcut fields
   SC.forEach((pos,i)=>drawSCField(pos[0],pos[1],`A${i+1}`,hiSC));
 
+  // Move animation overlay
+  if(moveAnim){
+    const elapsed=performance.now()-moveAnim.startTime;
+    const t=Math.min(1,elapsed/moveAnim.duration);
+    const path=moveAnim.path;
+    const n=path.length;
+    path.forEach((fi,i)=>{
+      if(fi<0||fi>=FP.length)return;
+      const[fx,fy]=FP[fi];
+      const isFirst=i===0,isLast=i===n-1;
+      let alpha=0;
+      if(isFirst&&n>1){
+        const fadeEnd=0.25;
+        alpha=t<=fadeEnd?(1-t/fadeEnd)*0.85:0;
+      }else if(isLast){
+        const fs=n<=2?0.1:0.55;
+        if(t>=fs){const lt=(t-fs)/(1-fs);alpha=Math.min(1,lt*2)*(0.55+0.45*Math.sin(lt*Math.PI*3));}
+      }else{
+        const swc=0.1+(i/(n-1))*0.65,hw=0.18;
+        if(t>=swc-hw&&t<=swc+hw)alpha=Math.sin(((t-(swc-hw))/(hw*2))*Math.PI)*0.7;
+      }
+      if(alpha>0.02){
+        ctx.save();ctx.globalAlpha=alpha;
+        ctx.shadowColor='#ffffff';ctx.shadowBlur=sr(20);
+        ctx.strokeStyle='rgba(255,255,255,0.95)';ctx.lineWidth=sr(3.5);
+        ctx.beginPath();ctx.arc(sx(fx),sy(fy),sr(FR+3),0,Math.PI*2);ctx.stroke();
+        ctx.restore();
+      }
+    });
+  }
+
   // Start plates (players not yet on board)
   if(G){
     G.players.forEach((p,i)=>{
@@ -634,7 +665,7 @@ function renderBoard(){
 let G=null,GAME_ID=null,MY_IDX=null,LISTENER=null;
 function newState(names){
   return{players:names.map((n,i)=>({name:n,color:PCOLS[i],pos:-1,kicked:false,wasKicked:false,visitedSchlB:false,kickedToSchranke:false})),
-    turn:0,phase:'start_roll',rollsLeft:3,pending:null,winner:-1,notification:null,rematch:null,
+    turn:0,phase:'start_roll',rollsLeft:3,pending:null,winner:-1,notification:null,rematch:null,moveAnim:null,
     log:[`Spiel gestartet! ${names[0]} beginnt.`]};
 }
 function addLog(m){G.log.unshift(m);}
@@ -803,7 +834,11 @@ function listenGame(id){
     const v=snap.val();if(!v)return;
     // Separate chatMsgs from game state
     const {chatMsgs,...gameState}=v;
-    G=gameState;updateUI();if(G.winner>=0)showWin();
+    const newAnimTs=gameState.moveAnim?.ts;
+    const shouldAnim=newAnimTs&&newAnimTs!==lastMoveAnimTs;
+    G=gameState;
+    if(shouldAnim){lastMoveAnimTs=newAnimTs;startMoveAnim(gameState.moveAnim.from,gameState.moveAnim.to,gameState.moveAnim.playerIdx);}
+    updateUI();if(G.winner>=0)showWin();
   });
   LISTENER=()=>ref.off('value',h);
 }
@@ -840,15 +875,20 @@ function kick(myIdx,pos){
 }
 function moveTo(idx,rawPos){
   const p=G.players[idx];
+  const fromPos=p.pos;
   let np=rawPos;
   if(p.pos<29&&np>=29)np=29;
   if(np>34)np=34;
   np=arrows(np);
   if(p.wasKicked&&p.pos>=0&&p.pos<10&&np>=10&&np<29){
     G.pending={type:'shortcut_choose',intendedPos:np};
-    G.phase='effect';p.pos=10;kick(idx,10);clearSchranke(idx);return 10;
+    G.phase='effect';p.pos=10;
+    G.moveAnim={from:fromPos,to:10,playerIdx:idx,ts:Date.now()};
+    kick(idx,10);clearSchranke(idx);return 10;
   }
-  p.pos=np;kick(idx,np);
+  p.pos=np;
+  G.moveAnim={from:fromPos,to:np,playerIdx:idx,ts:Date.now()};
+  kick(idx,np);
   if(np===0)clearSchranke(idx);
   return np;
 }
@@ -894,6 +934,33 @@ function advanceTurn(){
 // ── DICE ─────────────────────────────────────────────────────
 const FACES=['⚀','⚁','⚂','⚃','⚄','⚅'];
 let diceIV=null;
+
+// ── MOVE ANIMATION ──────────────────────────────────────────
+let moveAnim=null,moveAnimRAF=null,lastMoveAnimTs=0;
+
+function getMovePath(from,to){
+  if(from<0)return to>=0?[to]:[];
+  if(from===to)return[from];
+  const path=[];
+  if(to>from){for(let i=from;i<=to;i++)path.push(i);}
+  else{for(let i=from;i>=Math.max(0,to);i--)path.push(i);}
+  return path;
+}
+
+function startMoveAnim(from,to,playerIdx){
+  const path=getMovePath(from,to);
+  if(path.length===0)return;
+  moveAnim={path,from,to,playerIdx,startTime:performance.now(),duration:700};
+  if(!moveAnimRAF)moveAnimLoop();
+}
+
+function moveAnimLoop(){
+  if(!moveAnim){moveAnimRAF=null;return;}
+  const elapsed=performance.now()-moveAnim.startTime;
+  if(elapsed>=moveAnim.duration){moveAnim=null;moveAnimRAF=null;renderBoard();return;}
+  renderBoard();
+  moveAnimRAF=requestAnimationFrame(moveAnimLoop);
+}
 function animDice(result,ms,cb){
   vibe(30);const d=document.getElementById('ddisp');
   if(diceIV)clearInterval(diceIV);let t=0;
@@ -906,7 +973,7 @@ function animDice(result,ms,cb){
 // ── UI ───────────────────────────────────────────────────────
 function updateUI(){
   if(!G)return;
-  renderBoard();
+  if(!moveAnim)renderBoard();
   // Show synced notification to all players
   // Rematch screen
   if(G.rematch&&G.rematch.phase&&G.rematch.phase!=='cancelled'){
@@ -1290,41 +1357,15 @@ let forcedDice=null;
 let dbgTapCount=0;
 let dbgTapTimer=null;
 
-// Activation methods:
-// 1. URL parameter: ?admin
-// 2. Click/tap title 5 times fast
-// 3. Keyboard: type 'admin' anywhere
+// Secret activation: tap game title 5 times fast
 function initDebugTap(){
-  // Method 1: URL parameter
-  if(window.location.search.includes('admin')){
-    setTimeout(()=>{
-      if(G) openDebug();
-      else{
-        // Wait for game to load
-        const iv=setInterval(()=>{if(G){clearInterval(iv);openDebug();}},500);
-        setTimeout(()=>clearInterval(iv),10000);
-      }
-    },800);
-  }
-
-  // Method 2: Click/tap title 5 times (works on both mouse and touch)
-  document.addEventListener('click', e=>{
-    const t=e.target;
-    if(t.classList.contains('game-title')||t.closest('.game-title')||
-       t.id==='topbar'||t.closest('#topbar')){
-      dbgTapCount++;
-      if(dbgTapTimer)clearTimeout(dbgTapTimer);
-      dbgTapTimer=setTimeout(()=>{dbgTapCount=0;},2500);
-      if(dbgTapCount>=5){dbgTapCount=0;if(G)openDebug();}
-    }
-  });
-
-  // Method 3: Type 'admin' anywhere on keyboard
-  let typed='';
-  document.addEventListener('keydown',e=>{
-    typed+=e.key.toLowerCase();
-    if(typed.length>5)typed=typed.slice(-5);
-    if(typed==='admin'){typed='';if(G)openDebug();}
+  const title=document.querySelector('.game-title');
+  if(!title)return;
+  title.addEventListener('click',()=>{
+    dbgTapCount++;
+    if(dbgTapTimer)clearTimeout(dbgTapTimer);
+    dbgTapTimer=setTimeout(()=>dbgTapCount=0,2000);
+    if(dbgTapCount>=5){dbgTapCount=0;openDebug();}
   });
 }
 
@@ -1444,8 +1485,7 @@ const _origD6=d6;
 function d6(){return forcedDice!==null?(()=>{const v=forcedDice;forcedDice=null;updateDebugPanel&&updateDebugPanel();return v;})():_origD6();}
 
 init();
-// Init debug after short delay to ensure DOM is ready
-setTimeout(initDebugTap, 500);
+initDebugTap();
 
 // ── PWA SETUP ────────────────────────────────────────────────
 (function setupPWA(){
