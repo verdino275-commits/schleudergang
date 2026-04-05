@@ -665,7 +665,7 @@ function renderBoard(){
 let G=null,GAME_ID=null,MY_IDX=null,LISTENER=null;
 function newState(names){
   return{players:names.map((n,i)=>({name:n,color:PCOLS[i],pos:-1,kicked:false,wasKicked:false,visitedSchlB:false,kickedToSchranke:false})),
-    turn:0,phase:'start_roll',rollsLeft:3,pending:null,winner:-1,notification:null,rematch:null,moveAnim:null,
+    turn:0,phase:'start_roll',rollsLeft:3,pending:null,winner:-1,notification:null,rematch:null,
     log:[`Spiel gestartet! ${names[0]} beginnt.`]};
 }
 function addLog(m){G.log.unshift(m);}
@@ -834,11 +834,17 @@ function listenGame(id){
     const v=snap.val();if(!v)return;
     // Separate chatMsgs from game state
     const {chatMsgs,...gameState}=v;
-    const newAnimTs=gameState.moveAnim?.ts;
-    const shouldAnim=newAnimTs&&newAnimTs!==lastMoveAnimTs;
-    G=gameState;
-    if(shouldAnim){lastMoveAnimTs=newAnimTs;startMoveAnim(gameState.moveAnim.from,gameState.moveAnim.to,gameState.moveAnim.playerIdx);}
-    updateUI();if(G.winner>=0)showWin();
+    // Detect player movements for animation (compare positions before/after)
+    if(G&&G.players){
+      gameState.players.forEach((pl,idx)=>{
+        const oldPos=G.players[idx]?.pos;
+        const newPos=pl.pos;
+        if(oldPos!==undefined&&newPos!==oldPos){
+          startMoveAnim(oldPos,newPos,idx);
+        }
+      });
+    }
+    G=gameState;updateUI();if(G.winner>=0)showWin();
   });
   LISTENER=()=>ref.off('value',h);
 }
@@ -875,20 +881,15 @@ function kick(myIdx,pos){
 }
 function moveTo(idx,rawPos){
   const p=G.players[idx];
-  const fromPos=p.pos;
   let np=rawPos;
   if(p.pos<29&&np>=29)np=29;
   if(np>34)np=34;
   np=arrows(np);
   if(p.wasKicked&&p.pos>=0&&p.pos<10&&np>=10&&np<29){
     G.pending={type:'shortcut_choose',intendedPos:np};
-    G.phase='effect';p.pos=10;
-    G.moveAnim={from:fromPos,to:10,playerIdx:idx,ts:Date.now()};
-    kick(idx,10);clearSchranke(idx);return 10;
+    G.phase='effect';p.pos=10;kick(idx,10);clearSchranke(idx);return 10;
   }
-  p.pos=np;
-  G.moveAnim={from:fromPos,to:np,playerIdx:idx,ts:Date.now()};
-  kick(idx,np);
+  p.pos=np;kick(idx,np);
   if(np===0)clearSchranke(idx);
   return np;
 }
@@ -936,7 +937,7 @@ const FACES=['⚀','⚁','⚂','⚃','⚄','⚅'];
 let diceIV=null;
 
 // ── MOVE ANIMATION ──────────────────────────────────────────
-let moveAnim=null,moveAnimRAF=null,lastMoveAnimTs=0;
+let moveAnim=null,moveAnimRAF=null;
 
 function getMovePath(from,to){
   if(from<0)return to>=0?[to]:[];
