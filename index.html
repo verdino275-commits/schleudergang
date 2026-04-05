@@ -1482,7 +1482,7 @@ function dbgScenario(type){
 }
 
 // Hook into dice to allow forced values
-const _origD6=d6;
+const _origD6=()=>Math.floor(Math.random()*6)+1;
 function d6(){return forcedDice!==null?(()=>{const v=forcedDice;forcedDice=null;updateDebugPanel&&updateDebugPanel();return v;})():_origD6();}
 
 init();
