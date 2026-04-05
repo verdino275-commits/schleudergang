@@ -175,6 +175,26 @@ html,body{background:var(--bg);color:var(--tx);font-family:'Segoe UI',system-ui,
 .rule{margin-bottom:9px;font-size:.83em;line-height:1.6;color:#c4b5fd}
 .rule b{color:var(--tx)}
 #win-screen{position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:400;display:none;align-items:center;justify-content:center;padding:20px}
+/* Rematch */
+#rematch-screen{position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:450;display:none;align-items:center;justify-content:center;padding:20px;flex-direction:column;gap:12px}
+#rematch-screen.show{display:flex}
+.rm-card{background:#120924;border:1px solid var(--border);border-radius:16px;padding:22px;max-width:380px;width:100%;text-align:center}
+.rm-card h3{font-size:1.1em;color:#e9d5ff;margin-bottom:8px}
+.rm-card p{font-size:.85em;color:#9ca3af;margin-bottom:16px;line-height:1.5}
+.rm-btns{display:flex;gap:10px}
+.rm-btns button{flex:1;padding:13px;border:none;border-radius:11px;font-size:.95em;font-weight:700;cursor:pointer;transition:transform .1s}
+.rm-btns button:active{transform:scale(.97)}
+.rm-yes{background:linear-gradient(135deg,#22c55e,#15803d);color:#fff}
+.rm-no{background:rgba(239,68,68,.15);border:1.5px solid rgba(239,68,68,.3)!important;color:#fca5a5}
+.rm-timer{height:4px;background:rgba(255,255,255,.08);border-radius:2px;margin-top:12px;overflow:hidden}
+.rm-timer-bar{height:100%;background:linear-gradient(90deg,var(--acc),var(--acc2));border-radius:2px;transition:width linear}
+.rm-votes{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:10px 0}
+.rv{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.06);border-radius:20px;padding:5px 11px;font-size:.8em}
+.rv.yes{border:1px solid rgba(34,197,94,.4);color:#86efac}
+.rv.no{border:1px solid rgba(239,68,68,.3);color:#fca5a5}
+.rv.wait{border:1px solid rgba(255,255,255,.1);color:#9ca3af}
+.rm-input{background:rgba(255,255,255,.06);border:1.5px solid rgba(255,255,255,.12);border-radius:10px;padding:11px 14px;color:#e9d5ff;font-size:.95em;outline:none;width:100%;margin-bottom:10px}
+.rm-input:focus{border-color:var(--acc)}
 #win-screen.show{display:flex}
 .wcard{background:linear-gradient(135deg,#1e1040,#080318);border:2px solid #eab308;border-radius:20px;padding:36px;text-align:center;max-width:300px;width:100%;box-shadow:0 0 60px rgba(234,179,8,.4)}
 .wtrophy{font-size:4.5em;margin-bottom:10px}
@@ -250,8 +270,14 @@ html,body{background:var(--bg);color:var(--tx);font-family:'Segoe UI',system-ui,
     <div class="toast-msg" id="toast-msg"></div>
   </div>
 </div>
+<!-- REMATCH SCREEN -->
+<div id="rematch-screen">
+  <div class="rm-card" id="rm-card-content"></div>
+</div>
+
 <div id="win-screen"><div class="wcard"><div class="wtrophy">🏆</div><h2 id="wmsg"></h2>
-  <button class="bbtn green" onclick="newGame()" style="margin-top:6px">🎮 Neues Spiel</button></div></div>
+  <button class="bbtn purple" onclick="onStartRematch()" style="margin-top:8px">🔄 Nochmal spielen?</button>
+      <button class="bbtn green" onclick="newGame()" style="margin-top:6px">🏠 Hauptmenü</button></div></div>
 
 <div id="rules-modal" class="modal-bg hidden">
   <div class="modal-card">
@@ -495,7 +521,7 @@ function renderBoard(){
 let G=null,GAME_ID=null,MY_IDX=null,LISTENER=null;
 function newState(names){
   return{players:names.map((n,i)=>({name:n,color:PCOLS[i],pos:-1,kicked:false,wasKicked:false,visitedSchlB:false,kickedToSchranke:false})),
-    turn:0,phase:'start_roll',rollsLeft:3,pending:null,winner:-1,notification:null,
+    turn:0,phase:'start_roll',rollsLeft:3,pending:null,winner:-1,notification:null,rematch:null,
     log:[`Spiel gestartet! ${names[0]} beginnt.`]};
 }
 function addLog(m){G.log.unshift(m);}
@@ -586,7 +612,7 @@ let bannerTimer=null;
 let lastNotifTs=0;
 
 // Show banner locally
-function showInfoBanner(icon, text, duration=3000){
+function showInfoBanner(icon, text, duration=5000){
   const banner=document.getElementById('info-banner');
   const ibIcon=document.getElementById('ib-icon');
   const ibText=document.getElementById('ib-text');
@@ -769,6 +795,13 @@ function updateUI(){
   if(!G)return;
   renderBoard();
   // Show synced notification to all players
+  // Rematch screen
+  if(G.rematch&&G.rematch.phase&&G.rematch.phase!=='cancelled'){
+    renderRematchScreen();
+  } else if(G.rematch&&G.rematch.phase==='cancelled'){
+    document.getElementById('rematch-screen').classList.remove('show');
+  }
+
   if(G.notification&&G.notification.ts>lastNotifTs){
     lastNotifTs=G.notification.ts;
     showInfoBanner(G.notification.icon, G.notification.text);
@@ -825,7 +858,11 @@ function renderActions(){
   }
 }
 
-function showWin(){document.getElementById('wmsg').textContent=`${G.players[G.winner].name} hat gewonnen! 🎉`;document.getElementById('win-screen').classList.add('show');vibe([100,50,100,50,200]);}
+function showWin(){
+  document.getElementById('wmsg').textContent=`${G.players[G.winner].name} hat gewonnen! 🎉`;
+  document.getElementById('win-screen').classList.add('show');
+  vibe([100,50,100,50,200]);
+}
 
 // ── HANDLERS ────────────────────────────────────────────────
 function disableBtn(){document.querySelectorAll('#abtns button').forEach(b=>b.disabled=true);}
@@ -874,7 +911,7 @@ function showScreen(id){
   ['s-land','s-join','s-game'].forEach(s=>{const el=document.getElementById(s);if(!el)return;el.classList.remove('hidden');el.style.display=s===id?'flex':'none';});
   if(id==='s-game')document.getElementById('s-game').style.flexDirection='column';
 }
-function newGame(){if(LISTENER){LISTENER();LISTENER=null;}if(CHAT_LISTENER){CHAT_LISTENER();CHAT_LISTENER=null;}unreadCount=0;lastMsgCount=0;G=null;GAME_ID=null;MY_IDX=null;document.getElementById('win-screen').classList.remove('show');document.getElementById('land-link').classList.add('hidden');window.history.pushState(null,'','?');showScreen('s-land');initLanding();}
+function newGame(){if(LISTENER){LISTENER();LISTENER=null;}if(CHAT_LISTENER){CHAT_LISTENER();CHAT_LISTENER=null;}unreadCount=0;lastMsgCount=0;if(rmTimer){clearInterval(rmTimer);rmTimer=null;}document.getElementById('rematch-screen').classList.remove('show');G=null;GAME_ID=null;MY_IDX=null;document.getElementById('win-screen').classList.remove('show');document.getElementById('land-link').classList.add('hidden');window.history.pushState(null,'','?');showScreen('s-land');initLanding();}
 window.addEventListener('resize',()=>{if(G){sizeCV();renderBoard();}});
 
 async function init(){
@@ -885,6 +922,256 @@ async function init(){
   G=state;const stored=localStorage.getItem('sg_p_'+gid);
   if(stored!==null){MY_IDX=parseInt(stored);enterGame();}else showJoinScreen(state);
 }
+// ── REMATCH SYSTEM ─────────────────────────────────────────
+let rmTimer=null;
+const RM_TIMEOUT=15000;
+
+// Rematch state structure:
+// G.rematch = {
+//   phase: 'ask'|'add_players'|'naming'|'ready',
+//   votes: {playerIdx: 'yes'|'no'},
+//   startedBy: playerIdx,
+//   addVotes: {playerIdx: true/false},  // who wants to add players
+//   newPlayerCount: 0,
+//   newPlayerNames: [],
+//   readyVotes: {playerIdx: true}
+// }
+
+function startRematch(initiatorIdx){
+  if(!G||G.rematch)return;
+  G.rematch={phase:'ask',votes:{},startedBy:initiatorIdx,addVotes:{},newPlayerCount:0,newPlayerNames:[],readyVotes:{}};
+  // Auto-vote yes for initiator
+  G.rematch.votes[initiatorIdx]='yes';
+  addLog(`${G.players[initiatorIdx].name} möchte nochmal spielen!`);
+  push();
+}
+
+function voteRematch(playerIdx, vote){
+  if(!G||!G.rematch||G.rematch.phase!=='ask')return;
+  G.rematch.votes[playerIdx]=vote;
+  addLog(`${G.players[playerIdx].name}: ${vote==='yes'?'Ja! 🎮':'Nein 👋'}`);
+  checkRematchVotes();
+  push();
+}
+
+function checkRematchVotes(){
+  if(!G||!G.rematch||G.rematch.phase!=='ask')return;
+  const total=G.players.length;
+  const votes=G.rematch.votes;
+  const answered=Object.keys(votes).length;
+  if(answered<total)return; // not all answered yet
+  const yesPlayers=Object.entries(votes).filter(([,v])=>v==='yes').map(([i])=>parseInt(i));
+  if(yesPlayers.length<2){
+    addLog('Zu wenige Spieler wollen weiterspielen. Spiel beendet.');
+    G.rematch={phase:'cancelled'};
+    push(); return;
+  }
+  // Move to add_players phase
+  G.rematch.phase='add_players';
+  push();
+}
+
+function voteAddPlayer(playerIdx, wants){
+  if(!G||!G.rematch||G.rematch.phase!=='add_players')return;
+  G.rematch.addVotes[playerIdx]=wants;
+  if(wants){
+    G.rematch.phase='naming';
+    G.rematch.newPlayerCount=1; // will be updated
+    push();
+  } else {
+    // Check if all remaining yes-players voted no
+    const yesPlayers=Object.entries(G.rematch.votes).filter(([,v])=>v==='yes').map(([i])=>parseInt(i));
+    const allVotedNo=yesPlayers.every(i=>G.rematch.addVotes[i]===false);
+    if(allVotedNo){G.rematch.phase='ready';push();}
+    else push();
+  }
+}
+
+function setNewPlayerCount(count){
+  if(!G||!G.rematch)return;
+  G.rematch.newPlayerCount=count;
+  G.rematch.newPlayerNames=Array(count).fill('');
+  push();
+}
+
+function setNewPlayerName(idx,name){
+  if(!G||!G.rematch||!G.rematch.newPlayerNames)return;
+  G.rematch.newPlayerNames[idx]=name;
+}
+
+function confirmNewPlayers(){
+  if(!G||!G.rematch)return;
+  G.rematch.phase='ready';
+  push();
+}
+
+function skipAddPlayers(){
+  if(!G||!G.rematch)return;
+  G.rematch.phase='ready';
+  push();
+}
+
+function executeRematch(){
+  if(!G||!G.rematch)return;
+  const rm=G.rematch;
+  // Keep only yes-players
+  const yesIdxs=Object.entries(rm.votes).filter(([,v])=>v==='yes').map(([i])=>parseInt(i));
+  let newPlayers=yesIdxs.map(i=>({
+    name:G.players[i].name,
+    color:G.players[i].color
+  }));
+  // Add new players
+  if(rm.newPlayerNames){
+    rm.newPlayerNames.forEach((name,i)=>{
+      if(name.trim()){
+        const colIdx=(newPlayers.length)%PCOLS.length;
+        newPlayers.push({name:name.trim(),color:PCOLS[colIdx]});
+      }
+    });
+  }
+  // Winner goes first
+  const winnerName=G.players[G.winner]?.name;
+  const winnerIdx=newPlayers.findIndex(p=>p.name===winnerName);
+  if(winnerIdx>0){
+    const w=newPlayers.splice(winnerIdx,1)[0];
+    newPlayers.unshift(w);
+  }
+  // Create new game
+  const newState=newG(newPlayers.map(p=>p.name));
+  // Restore colors
+  newPlayers.forEach((p,i)=>{if(newState.players[i])newState.players[i].color=p.color;});
+  G=newState;
+  document.getElementById('rematch-screen').classList.remove('show');
+  document.getElementById('win-screen').classList.remove('show');
+  push();
+  addLog(`Neues Spiel! ${G.players[0].name} beginnt.`);
+  push();
+}
+
+function renderRematchScreen(){
+  if(!G||!G.rematch)return;
+  const rm=G.rematch;
+  const screen=document.getElementById('rematch-screen');
+  const card=document.getElementById('rm-card-content');
+  if(!screen||!card)return;
+
+  if(rm.phase==='cancelled'){screen.classList.remove('show');return;}
+  screen.classList.add('show');
+  document.getElementById('win-screen').classList.remove('show');
+
+  const myName=MY_IDX!==null?G.players[MY_IDX]?.name:'';
+  const myVote=MY_IDX!==null?rm.votes[MY_IDX]:null;
+  const yesPlayers=Object.entries(rm.votes||{}).filter(([,v])=>v==='yes').map(([i])=>parseInt(i));
+
+  if(rm.phase==='ask'){
+    const voteList=G.players.map((p,i)=>{
+      const v=rm.votes[i];
+      const cls=v==='yes'?'yes':v==='no'?'no':'wait';
+      const icon=v==='yes'?'✅':v==='no'?'❌':'⏳';
+      return`<div class="rv ${cls}"><div class="cdot" style="background:${p.color}"></div>${p.name} ${icon}</div>`;
+    }).join('');
+
+    const myAnswered=myVote!=null;
+    card.innerHTML=`
+      <h3>🎮 Nochmal spielen?</h3>
+      <p>Alle Spieler haben 15 Sekunden um zu antworten.</p>
+      <div class="rm-votes">${voteList}</div>
+      ${!myAnswered?`<div class="rm-btns">
+        <button class="rm-yes" onclick="voteRematch(${MY_IDX},'yes')">✅ Ja!</button>
+        <button class="rm-no" onclick="voteRematch(${MY_IDX},'no')">❌ Nein</button>
+      </div>`:`<p style="color:#9ca3af;font-size:.85em">Warte auf andere Spieler…</p>`}
+      <div class="rm-timer"><div class="rm-timer-bar" id="rm-timer-bar" style="width:100%"></div></div>`;
+
+    // Start timer if not already running
+    if(!rmTimer&&!myAnswered){
+      const start=Date.now();
+      rmTimer=setInterval(()=>{
+        const pct=Math.max(0,100-(Date.now()-start)/RM_TIMEOUT*100);
+        const bar=document.getElementById('rm-timer-bar');
+        if(bar)bar.style.width=pct+'%';
+        if(pct<=0){
+          clearInterval(rmTimer);rmTimer=null;
+          if(MY_IDX!==null&&!G.rematch?.votes[MY_IDX])
+            voteRematch(MY_IDX,'no');
+        }
+      },100);
+    }
+    return;
+  }
+
+  // Clear timer
+  if(rmTimer){clearInterval(rmTimer);rmTimer=null;}
+
+  if(rm.phase==='add_players'){
+    const myAddVote=MY_IDX!==null?rm.addVotes[MY_IDX]:null;
+    const alreadyVoting=myAddVote!=null;
+    const amYesPlayer=yesPlayers.includes(MY_IDX);
+    card.innerHTML=`
+      <h3>➕ Neuen Spieler hinzufügen?</h3>
+      <p>Möchte jemand einen neuen Spieler ins Spiel bringen?</p>
+      ${amYesPlayer&&!alreadyVoting?`<div class="rm-btns">
+        <button class="rm-yes" onclick="voteAddPlayer(${MY_IDX},true)">✅ Ja</button>
+        <button class="rm-no" onclick="voteAddPlayer(${MY_IDX},false)">❌ Nein</button>
+      </div>`:`<p style="color:#9ca3af;font-size:.85em">Warte…</p>`}`;
+    return;
+  }
+
+  if(rm.phase==='naming'){
+    const count=rm.newPlayerCount||1;
+    const amYesPlayer=yesPlayers.includes(MY_IDX);
+    const whoWantsAdd=Object.entries(rm.addVotes).find(([,v])=>v===true);
+    const isAdder=whoWantsAdd&&parseInt(whoWantsAdd[0])===MY_IDX;
+
+    if(isAdder){
+      const inputs=Array.from({length:count},(_,i)=>
+        `<input class="rm-input" id="np-${i}" placeholder="Name Spieler ${i+1}" maxlength="12">`
+      ).join('');
+      card.innerHTML=`
+        <h3>➕ Neue Spieler benennen</h3>
+        <p>Wie viele neue Spieler? (max. ${5-yesPlayers.length})</p>
+        <input class="rm-input" type="number" id="np-count" min="1" max="${5-yesPlayers.length}" value="${count}"
+          onchange="setNewPlayerCount(Math.min(${5-yesPlayers.length},Math.max(1,parseInt(this.value)||1)));renderRematchScreen()">
+        ${inputs}
+        <button class="bbtn green" onclick="submitNewPlayers()" style="margin-top:8px">✅ Bestätigen</button>
+        <button class="bbtn" onclick="skipAddPlayers()" style="margin-top:6px;background:rgba(255,255,255,.07)">Ohne neue Spieler weiter</button>`;
+    } else {
+      card.innerHTML=`<h3>➕ Neue Spieler werden eingetragen…</h3><p style="color:#9ca3af">Warte auf ${G.players[parseInt(whoWantsAdd?.[0])]?.name}…</p>`;
+    }
+    return;
+  }
+
+  if(rm.phase==='ready'){
+    const staying=yesPlayers.map(i=>G.players[i].name).join(', ');
+    const newOnes=rm.newPlayerNames?.filter(n=>n.trim()).join(', ');
+    card.innerHTML=`
+      <h3>🎮 Bereit!</h3>
+      <p>Spieler: <b>${staying}${newOnes?', '+newOnes:''}</b><br>${G.players[G.winner]?.name} beginnt!</p>
+      ${MY_IDX===rm.startedBy||yesPlayers.includes(MY_IDX)?
+        `<button class="bbtn purple" onclick="executeRematch()" style="margin-top:8px">▶ Neues Spiel starten!</button>`
+        :`<p style="color:#9ca3af;font-size:.85em">Warte auf Spielstart…</p>`}`;
+    return;
+  }
+}
+
+function onStartRematch(){
+  if(!G||MY_IDX===null)return;
+  document.getElementById('win-screen').classList.remove('show');
+  startRematch(MY_IDX);
+}
+
+function submitNewPlayers(){
+  if(!G||!G.rematch)return;
+  const count=G.rematch.newPlayerCount||1;
+  const names=[];
+  for(let i=0;i<count;i++){
+    const inp=document.getElementById(`np-${i}`);
+    names.push(inp?inp.value.trim():`Spieler ${i+1}`);
+  }
+  G.rematch.newPlayerNames=names;
+  G.rematch.phase='ready';
+  push();
+}
+
 init();
 
 // ── PWA SETUP ────────────────────────────────────────────────
