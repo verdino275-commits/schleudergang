@@ -1124,7 +1124,8 @@ function renderBoard(){
       const slotHW=0.5/n;
       const dist=Math.abs(t-slotCenter);
       let alpha=0;
-      if(dist<slotHW) alpha=Math.pow(Math.cos(dist/slotHW*Math.PI*0.5),2);
+      // Only light up if animation has reached this field's window (no early glow)
+      if(dist<slotHW && t>=i/n) alpha=Math.pow(Math.cos(dist/slotHW*Math.PI*0.5),2);
       if(alpha>0.01){
         const px=sx(fx),py=sy(fy),pr=sr(FR);
         ctx.save();
@@ -1163,12 +1164,16 @@ function renderBoard(){
     // Player tokens on board
     // During animation: move the animated player's token along the path
     let animVisualPos = {};
+    // Queued animations: show player at START position until their turn
+    moveAnimQueue.forEach(qa=>{
+      if(qa.path.length>0) animVisualPos[qa.playerIdx]=qa.path[0];
+    });
+    // Current animation: move token to currently lit field
     if(moveAnim){
       const elapsed=performance.now()-moveAnim.startTime;
       const tAnim=Math.min(1,elapsed/moveAnim.duration);
       const path=moveAnim.path;
       const n=path.length;
-      // Find which field is currently brightest (peak alpha)
       let bestField=path[0], bestAlpha=0;
       path.forEach((fi,i)=>{
         const slotCenter=(i+0.5)/n;
@@ -1179,7 +1184,9 @@ function renderBoard(){
           if(alpha>bestAlpha){bestAlpha=alpha;bestField=fi;}
         }
       });
-      if(bestField>=0) animVisualPos[moveAnim.playerIdx]=bestField;
+      // Only override to currently lit field (not start) once animation is past first slot
+      if(tAnim>0.001) animVisualPos[moveAnim.playerIdx]=bestField;
+      else animVisualPos[moveAnim.playerIdx]=path[0];
     }
 
     const pm={};
@@ -1523,7 +1530,8 @@ function getMovePath(from,to){
 function startMoveAnim(from,to,playerIdx){
   const path=getMovePath(from,to);
   if(path.length===0)return;
-  const anim={path,from,to,playerIdx,startTime:performance.now(),duration:3000};
+  const dur=Math.min(4000,Math.max(800,path.length*220));
+  const anim={path,from,to,playerIdx,startTime:performance.now(),duration:dur};
   if(moveAnim){
     // Animation running - queue new one instead of replacing
     moveAnimQueue.push(anim);
