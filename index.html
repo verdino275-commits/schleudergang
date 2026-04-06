@@ -25,10 +25,10 @@
   #board-wrap{border-radius:16px;overflow:hidden}
   #pbar{padding:8px 0}
   #info-banner{margin:0 0 8px}
-  #abox{margin:0 0 8px}
+  #abox{margin:0 0 8px;min-height:160px}
   #logbox{height:160px}
   #lc-wrap{margin:0}
-  #waiting-box{margin:0 0 8px}
+  #waiting-box{margin:0 0 8px;min-height:110px}
   .logo{font-size:2.6em}
   .card{max-width:420px}
 }
@@ -66,19 +66,31 @@ html,body{background:var(--bg);color:var(--tx);font-family:'Segoe UI',system-ui,
 .icon-btn{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:9px;padding:9px 13px;color:var(--tx);cursor:pointer;font-size:.82em;font-weight:600}
 #board-wrap{flex-shrink:0;width:100%;padding:0}
 #cv{display:block;width:100%}
-#pbar{display:flex;gap:8px;overflow-x:auto;padding:4px 14px;scrollbar-width:none;flex-shrink:0}
+#pbar{display:flex;gap:8px;overflow-x:auto;padding:4px 14px;scrollbar-width:none;flex-shrink:0;min-height:56px;align-items:center}
 #pbar::-webkit-scrollbar{display:none}
-.chip{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.06);border:1.5px solid rgba(255,255,255,.1);border-radius:50px;padding:7px 13px;white-space:nowrap;flex-shrink:0;transition:all .2s}
+.chip{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.06);border:1.5px solid rgba(255,255,255,.1);border-radius:50px;padding:7px 13px;white-space:nowrap;flex-shrink:0;transition:all .2s;min-height:44px}
 .chip.active{border-color:var(--acc);background:rgba(168,85,247,.15);box-shadow:0 0 12px rgba(168,85,247,.25)}
 .chip.me{border-color:#eab308}
 .chip.me.active{border-color:#eab308;box-shadow:0 0 12px rgba(234,179,8,.3)}
 .cdot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
 .cname{font-size:.83em;font-weight:700}
 .cpos{font-size:.7em;color:var(--sub)}
-#waiting-box{margin:10px 14px;background:rgba(6,182,212,.07);border:1px solid rgba(6,182,212,.22);border-radius:var(--r);padding:20px;text-align:center;flex-shrink:0}
+#waiting-box{margin:10px 14px;background:rgba(6,182,212,.07);border:1px solid rgba(6,182,212,.22);border-radius:var(--r);padding:16px 20px;text-align:center;flex-shrink:0;min-height:110px;display:flex;flex-direction:column;align-items:center;justify-content:center}
 .spinner{width:30px;height:30px;border:3px solid rgba(168,85,247,.2);border-top-color:var(--acc);border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 10px}
 @keyframes spin{to{transform:rotate(360deg)}}
 #waiting-msg{font-size:.88em;color:#c4b5fd}
+/* Figure picker */
+#figure-screen{position:fixed;inset:0;background:rgba(0,0,0,.95);z-index:9999;display:none;align-items:center;justify-content:center;padding:20px}
+#figure-screen.show{display:flex}
+.fig-card{background:#120924;border:1px solid var(--border);border-radius:16px;padding:24px;max-width:360px;width:100%;text-align:center}
+.fig-card h3{font-size:1.05em;color:#e9d5ff;margin-bottom:6px}
+.fig-card p{font-size:.82em;color:#9ca3af;margin-bottom:18px}
+.fig-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+.fig-btn{background:rgba(255,255,255,.05);border:1.5px solid rgba(255,255,255,.12);border-radius:12px;padding:14px 8px;cursor:pointer;font-size:1.8em;transition:all .15s;position:relative}
+.fig-btn:active{transform:scale(.94)}
+.fig-btn.taken{opacity:.3;cursor:not-allowed;pointer-events:none}
+.fig-btn.selected{border-color:var(--acc);background:rgba(168,85,247,.2);box-shadow:0 0 14px rgba(168,85,247,.4)}
+.fig-btn .fig-owner{position:absolute;bottom:2px;right:4px;font-size:.5em;color:#9ca3af}
 /* Stats screen */
 #stats-screen{position:fixed;inset:0;background:rgba(0,0,0,.93);z-index:410;display:none;align-items:flex-start;justify-content:center;padding:16px;overflow-y:auto}
 #stats-screen.show{display:flex}
@@ -119,13 +131,21 @@ html,body{background:var(--bg);color:var(--tx);font-family:'Segoe UI',system-ui,
 .lang-btn{background:rgba(255,255,255,.06);border:1.5px solid rgba(255,255,255,.1);border-radius:8px;color:var(--sub);padding:5px 9px;cursor:pointer;font-size:.82em;transition:all .15s}
 .lang-btn.active{background:rgba(168,85,247,.2);border-color:var(--acc);color:var(--tx);font-weight:700}
 #lang-bar{display:flex;gap:5px;padding:4px 14px;flex-shrink:0}
-#abox{margin:4px 14px;background:rgba(255,255,255,.04);border:1.5px solid rgba(255,255,255,.1);border-radius:var(--r);padding:12px;flex-shrink:0;transition:border-color .3s,box-shadow .3s}
+#abox{margin:4px 14px;background:rgba(255,255,255,.04);border:1.5px solid rgba(255,255,255,.1);border-radius:var(--r);padding:12px;flex-shrink:0;transition:border-color .3s,box-shadow .3s;min-height:160px;display:flex;flex-direction:column;justify-content:center}
 #abox.my-turn{border-color:rgba(168,85,247,.7);animation:abox-pulse 1.4s ease-in-out infinite}
+#action-area{flex-shrink:0;display:flex;flex-direction:column;min-height:290px}
+#action-area #info-banner{flex-shrink:0}
+#action-area #waiting-box{flex-shrink:0;margin-top:0}
+#action-area #abox{flex:1;margin-top:0}
+#action-area{flex-shrink:0;display:flex;flex-direction:column;min-height:290px;position:relative}
+#action-area #info-banner{margin:0 14px 6px;flex-shrink:0}
+#action-area #waiting-box{margin:0 14px 6px;flex-shrink:0}
+#action-area #abox{margin:0 14px;flex:1}
 @keyframes abox-pulse{
   0%,100%{box-shadow:0 0 8px rgba(168,85,247,.3),inset 0 0 8px rgba(168,85,247,.05)}
   50%{box-shadow:0 0 22px rgba(168,85,247,.7),0 0 40px rgba(255,255,255,.1),inset 0 0 14px rgba(168,85,247,.1)}
 }
-#tlabel{font-size:.82em;color:#c4b5fd;margin-bottom:8px;font-weight:600}
+#tlabel{font-size:.82em;color:#c4b5fd;margin-bottom:8px;font-weight:600;min-height:18px}
 #ddisp{font-size:3.8em;text-align:center;margin:4px 0 10px;line-height:1;min-height:1.2em;transition:transform .15s}
 .msg{font-size:.85em;color:#c4b5fd;line-height:1.55;margin-bottom:10px}
 .bbtn{width:100%;padding:15px;border:none;border-radius:12px;color:#fff;font-size:1em;font-weight:700;cursor:pointer;letter-spacing:.3px;margin-bottom:8px;transition:transform .1s}
@@ -263,7 +283,7 @@ html,body{background:var(--bg);color:var(--tx);font-family:'Segoe UI',system-ui,
 #win-screen{position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:400;display:none;align-items:center;justify-content:center;padding:20px}
 
 #win-screen.show{display:flex}
-.wcard{background:linear-gradient(135deg,#1e1040,#080318);border:2px solid #eab308;border-radius:20px;padding:36px;text-align:center;max-width:300px;width:100%;box-shadow:0 0 60px rgba(234,179,8,.4)}
+.wcard{background:linear-gradient(135deg,#1e1040,#080318);border:2px solid #eab308;border-radius:20px;padding:36px;text-align:center;max-width:300px;width:100%;box-shadow:0 0 60px rgba(234,179,8,.4);min-height:280px;display:flex;flex-direction:column;align-items:center;justify-content:center}
 .wtrophy{font-size:4.5em;margin-bottom:10px}
 .wcard h2{font-size:1.4em;color:#fde68a;margin-bottom:20px}
 </style>
@@ -311,6 +331,8 @@ html,body{background:var(--bg);color:var(--tx);font-family:'Segoe UI',system-ui,
   </div><!-- /left-col -->
   <div id="right-col">
   <div id="pbar"></div>
+  <div id="action-area">
+  <div id="action-area">
   <div id="info-banner" onclick="hideInfoBanner()">
     <div class="ib-icon" id="ib-icon"></div>
     <div class="ib-text" id="ib-text"></div>
@@ -318,7 +340,9 @@ html,body{background:var(--bg);color:var(--tx);font-family:'Segoe UI',system-ui,
     <div class="ib-bar" id="ib-bar"></div>
   </div>
   <div id="waiting-box" class="hidden"><div class="spinner"></div><div id="waiting-msg">⏳ Warte…</div></div>
-  <div id="abox"><div id="tlabel"></div><div id="ddisp">🎲</div><div id="abtns"></div></div>
+  <div id="abox"><div id="tlabel"></div><div id="ddisp" style="text-align:center">🎲</div><div id="abtns"></div></div>
+  </div><!-- /action-area -->
+  </div>
   <!-- Log + Chat Tabs -->
   <div id="lc-wrap">
     <div id="lc-tabs">
@@ -428,6 +452,15 @@ html,body{background:var(--bg);color:var(--tx);font-family:'Segoe UI',system-ui,
 
 <!-- rematch screen removed -->
 
+<!-- Figure Picker Screen -->
+<div id="figure-screen">
+  <div class="fig-card">
+    <h3 id="fig-title">🎭 Wähle deine Spielfigur</h3>
+    <p id="fig-subtitle">Jede Figur kann nur einmal gewählt werden.</p>
+    <div class="fig-grid" id="fig-grid"></div>
+    <button class="bbtn purple" id="fig-confirm-btn" onclick="confirmFigure()" disabled>✓ Bestätigen</button>
+  </div>
+</div>
 <!-- Stats Screen -->
 <div id="stats-screen">
   <div class="stats-card">
@@ -561,6 +594,7 @@ de: {
   n_quit:'hat aufgegeben und scheidet aus!',
   n_all_quit_win:'gewinnt – alle anderen haben aufgegeben!',
   // Stats
+  fig_title:'🎭 Wähle deine Spielfigur', fig_subtitle:'Jede Figur kann nur einmal gewählt werden.', fig_confirm:'✓ Bestätigen',
   stats_title:'📊 Spielstatistiken',
   stats_duration:'Spieldauer',
   stats_most_kicked:'Größter Unruhestifter 💥',
@@ -651,6 +685,7 @@ it: {
   n_ssp_draw:'Parità!', n_ssp_draw_retry:'– scegliere ancora!',
   n_quit:'si è ritirato/a!',
   n_all_quit_win:'vince – tutti gli altri si sono ritirati!',
+  fig_title:'🎭 Scegli la tua pedina', fig_subtitle:'Ogni pedina può essere scelta una sola volta.', fig_confirm:'✓ Conferma',
   stats_title:'📊 Statistiche partita',
   stats_duration:'Durata partita',
   stats_most_kicked:'Disturbatore principale 💥',
@@ -741,6 +776,7 @@ en: {
   n_ssp_draw:'Draw!', n_ssp_draw_retry:'– choose again!',
   n_quit:'has quit!',
   n_all_quit_win:'wins – all others quit!',
+  fig_title:'🎭 Choose your piece', fig_subtitle:'Each piece can only be chosen once.', fig_confirm:'✓ Confirm',
   stats_title:'📊 Game statistics',
   stats_duration:'Game duration',
   stats_most_kicked:'Biggest troublemaker 💥',
@@ -831,6 +867,7 @@ sk: {
   n_ssp_draw:'Remíza!', n_ssp_draw_retry:'– vybrať znova!',
   n_quit:'vzdal/a to!',
   n_all_quit_win:'vyhrá – všetci ostatní vzdali!',
+  fig_title:'🎭 Vyber svoju figúrku', fig_subtitle:'Každú figúrku môže zvoliť iba jeden hráč.', fig_confirm:'✓ Potvrdiť',
   stats_title:'📊 Štatistiky hry',
   stats_duration:'Trvanie hry',
   stats_most_kicked:'Najväčší rušiteľ 💥',
@@ -934,12 +971,12 @@ const FC2={
   normal: {bg:'#15803d',bd:'#14532d',tx:'#fff'},
   schranke:{bg:'#7c3aed',bd:'#4c1d95',tx:'#fff',gl:'#a855f7'},
   arrow:  {bg:'#0284c7',bd:'#075985',tx:'#fff'},
-  heraus: {bg:'#a21caf',bd:'#701a75',tx:'#fff',gl:'#e879f9'},
+  heraus: {bg:'#db2777',bd:'#9d174d',tx:'#fff',gl:'#fb7185'},
   schlA:  {bg:'#1d4ed8',bd:'#1e3a8a',tx:'#fff',gl:'#60a5fa'},
   schlB:  {bg:'#b91c1c',bd:'#7f1d1d',tx:'#fff',gl:'#f87171'},
-  tausch: {bg:'#c2410c',bd:'#7c2d12',tx:'#fff',gl:'#fb923c'},
+  tausch: {bg:'#db2777',bd:'#9d174d',tx:'#fff',gl:'#fb7185'},
   ziel:   {bg:'#059669',bd:'#064e3b',tx:'#fff',gl:'#34d399'},
-  ssp:    {bg:'#0e7490',bd:'#164e63',tx:'#fff',gl:'#22d3ee'},
+  ssp:    {bg:'#db2777',bd:'#9d174d',tx:'#fff',gl:'#fb7185'},
   becher: {bg:'#b45309',bd:'#92400e',tx:'#fde68a',gl:'#fbbf24'},
 };
 
@@ -1068,7 +1105,7 @@ function renderBoard(){
   // Field circles
   const curPos=G?G.players[G.turn]?.pos:-1;
   for(let p=0;p<35;p++){
-    const[x,y]=FP[p];const t=ft(p);const f=FC2[t]||FC2.normal;
+    const[x,y]=FP[p];const ftype=ft(p);const f=FC2[ftype]||FC2.normal;
     drawCircleField(x,y,FR,f,FLBL[p],p===curPos);
   }
   // Shortcut fields
@@ -1118,7 +1155,7 @@ function renderBoard(){
       ctx.beginPath();ctx.arc(px,py,pr,0,Math.PI*2);ctx.stroke();
       ctx.font=`bold ${sr(9)}px Arial`;ctx.fillStyle='#fff';
       ctx.textAlign='center';ctx.textBaseline='middle';
-      ctx.fillText(p.name[0].toUpperCase(),px,py);
+      if(p.figure){ctx.font=`bold ${sr(11)}px Arial`;ctx.fillText(p.figure,px,py);}else{ctx.fillText(p.name[0].toUpperCase(),px,py);}
     });
     ctx.fillStyle='rgba(255,255,255,.25)';ctx.font=`bold ${sr(7.5)}px Arial`;
     ctx.textAlign='center';ctx.fillText('START',sx(12),sy(18));
@@ -1164,9 +1201,7 @@ function renderBoard(){
         ctx.shadowBlur=0;
         ctx.strokeStyle='rgba(255,255,255,.7)';ctx.lineWidth=sr(1.8);
         ctx.beginPath();ctx.arc(px,py,pr,0,Math.PI*2);ctx.stroke();
-        ctx.font=`bold ${sr(9)}px Arial`;ctx.fillStyle='#fff';
-        ctx.textAlign='center';ctx.textBaseline='middle';
-        ctx.fillText(p.name[0].toUpperCase(),px,py);
+        if(p.figure){ctx.font=`bold ${sr(12)}px Arial`;ctx.fillStyle='#fff';ctx.fillText(p.figure,px,py);}else{ctx.font=`bold ${sr(9)}px Arial`;ctx.fillStyle='#fff';ctx.fillText(p.name[0].toUpperCase(),px,py);}
       });
     });
   }
@@ -1175,7 +1210,7 @@ function renderBoard(){
 // ── STATE ────────────────────────────────────────────────────
 let G=null,GAME_ID=null,MY_IDX=null,LISTENER=null;
 function newState(names){
-  return{players:names.map((n,i)=>({name:n,color:PCOLS[i],pos:-1,kicked:false,wasKicked:false,visitedSchlB:false,kickedToSchranke:false,quit:false,
+  return{players:names.map((n,i)=>({name:n,color:PCOLS[i],pos:-1,kicked:false,wasKicked:false,visitedSchlB:false,kickedToSchranke:false,quit:false,figure:null,
       stats:{kicked:0,gotKicked:0,duelsWon:0,duelsLost:0,tausch:0,sspWon:0,sspLost:0,sixes:0}})),
     turn:0,phase:'start_roll',rollsLeft:3,pending:null,winner:-1,notification:null,startedAt:Date.now(),
     log:[`Spiel gestartet! ${names[0]} beginnt.`]};
@@ -1381,12 +1416,12 @@ function clearSchranke(myIdx){
     if(i===myIdx||p.pos!==0)return;
     // Player already on Schrankenfeld gets pushed to Startteller
     if(p.kickedToSchranke){
-      // Was kicked there → goes to Startteller, needs 6 to re-enter
+      startMoveAnim(0,-1,i);
       p.pos=-1; p.kickedToSchranke=false;
       addLog(`${p.name} vom Schrankenfeld auf den Startteller verdrängt!`);
       notify('↩',`${pn(p)} ${t('n_displaced')}`);
     } else {
-      // Was there via 6 → also goes to Startteller
+      startMoveAnim(0,-1,i);
       p.pos=-1;
       addLog(`${p.name} vom Schrankenfeld auf den Startteller verdrängt!`);
       notify('↩',`${pn(p)} ${t('n_displaced')}`);
@@ -1425,13 +1460,13 @@ function moveTo(idx,rawPos){
   return np;
 }
 function afterMove(idx){
-  const p=G.players[idx];const t=ft(p.pos);
+  const p=G.players[idx];const ft_=ft(p.pos);
   if(p.pos===34){addLog(`🏆 ${p.name} am Zielfeld! 1 Wurf zum Sieg!`);
     notify('🏆',`${pn(p)} ${t('n_goal_next')}`);
     endPhase();return;}
   // Arrow field banner
-  if(t==='arrow'){notify('➡',`${t('n_arrow')} ${pn(p)} ${t('n_arrow_forward')}`);}
-  if(t==='schlB'){
+  if(ft_==='arrow'){notify('➡',`${t('n_arrow')} ${pn(p)} ${t('n_arrow_forward')}`);}
+  if(ft_==='schlB'){
     if(p.visitedSchlB){addLog(`${p.name} auf F22 – kein Effekt (2. Besuch).`);endPhase();return;}
     p.visitedSchlB=true;
     if(p.wasKicked){const fp=p.pos;p.pos=10;startMoveAnim(fp,10,idx);kick(idx,10);addLog(`💫 ${p.name}→F10! Abkürzung verfügbar!`);
@@ -1441,14 +1476,14 @@ function afterMove(idx){
     notify('💫',`${pn(p)} ${t('n_sling_back')}`);
     endPhase();return;
   }
-  if(t==='ssp'){
+  if(ft_==='ssp'){
     const sspOpts=G.players.filter((_,i)=>i!==idx&&!G.players[i].quit&&G.players[i].pos>=0);
     if(sspOpts.length===0){notify('✂️',`${pn(p)} ${t('n_ssp_choose')} ${t('no_opponent')}`);endPhase();return;}
     notify('✂️',`${pn(p)} ${t('n_ssp_choose')}`);
     G.phase='effect';G.pending={type:'ssp_choose'};return;
   }
-  if(t==='tausch'){notify('🔄',`${pn(p)} ${t('n_tausch_land')}`);G.phase='effect';G.pending={type:'tausch'};return;}
-  if(t==='heraus'){notify('⚔',`${pn(p)} ${t('n_heraus_land')}`);G.phase='effect';G.pending={type:'heraus_choose'};return;}
+  if(ft_==='tausch'){notify('🔄',`${pn(p)} ${t('n_tausch_land')}`);G.phase='effect';G.pending={type:'tausch'};return;}
+  if(ft_==='heraus'){notify('⚔',`${pn(p)} ${t('n_heraus_land')}`);G.phase='effect';G.pending={type:'heraus_choose'};return;}
   endPhase();
 }
 function endPhase(){G.phase='done';}
@@ -1472,9 +1507,12 @@ let diceIV=null;
 
 // ── MOVE ANIMATION ──────────────────────────────────────────
 let moveAnim=null,moveAnimRAF=null;
+let moveAnimQueue=[];  // Queue for pending animations
 
 function getMovePath(from,to){
+  if(from<0&&to<0)return[];
   if(from<0)return to>=0?[to]:[];
+  if(to<0)return[from]; // going to start plate: just light up where they were
   if(from===to)return[from];
   const path=[];
   if(to>from){for(let i=from;i<=to;i++)path.push(i);}
@@ -1485,14 +1523,45 @@ function getMovePath(from,to){
 function startMoveAnim(from,to,playerIdx){
   const path=getMovePath(from,to);
   if(path.length===0)return;
-  moveAnim={path,from,to,playerIdx,startTime:performance.now(),duration:3000};
-  if(!moveAnimRAF)moveAnimLoop();
+  const anim={path,from,to,playerIdx,startTime:performance.now(),duration:3000};
+  if(moveAnim){
+    // Animation running - queue new one instead of replacing
+    moveAnimQueue.push(anim);
+  } else {
+    moveAnim=anim;
+    if(!moveAnimRAF)moveAnimLoop();
+  }
 }
 
 function moveAnimLoop(){
-  if(!moveAnim){moveAnimRAF=null;return;}
+  if(!moveAnim){
+    // Check queue for next animation
+    if(moveAnimQueue.length>0){
+      moveAnim=moveAnimQueue.shift();
+      moveAnim.startTime=performance.now(); // reset timing
+      moveAnimRAF=requestAnimationFrame(moveAnimLoop);
+    } else {
+      moveAnimRAF=null;
+    }
+    renderBoard();
+    return;
+  }
   const elapsed=performance.now()-moveAnim.startTime;
-  if(elapsed>=moveAnim.duration){moveAnim=null;moveAnimRAF=null;renderBoard();return;}
+  if(elapsed>=moveAnim.duration){
+    moveAnim=null;
+    // Immediately start next queued animation if any
+    if(moveAnimQueue.length>0){
+      moveAnim=moveAnimQueue.shift();
+      moveAnim.startTime=performance.now();
+    }
+    renderBoard();
+    if(moveAnim){
+      moveAnimRAF=requestAnimationFrame(moveAnimLoop);
+    } else {
+      moveAnimRAF=null;
+    }
+    return;
+  }
   renderBoard();
   moveAnimRAF=requestAnimationFrame(moveAnimLoop);
 }
@@ -1510,10 +1579,16 @@ function updateUI(){
   if(!G)return;
   renderBoard();
   if(G&&G.startedAt&&!timerInterval)startGameTimer();
+  // Refresh figure grid if open
+  if(document.getElementById('figure-screen')?.classList.contains('show'))renderFigureGrid();
+  // Show figure picker if player hasn't chosen yet
+  if(MY_IDX!==null&&G&&G.players[MY_IDX]&&!G.players[MY_IDX].figure&&G.winner<0&&!document.getElementById('figure-screen')?.classList.contains('show')){
+    showFigurePicker(MY_IDX,null);
+  }
   // Ensure stats exist on all players (safety for old Firebase states)
   if(G&&G.players)G.players.forEach(p=>{if(!p.stats)p.stats={kicked:0,gotKicked:0,duelsWon:0,duelsLost:0,tausch:0,sspWon:0,sspLost:0,sixes:0};});
   // Resolve SSP when both have picked - challenger's device executes
-  if(G.pending?.type==='ssp_pick'&&G.pending.chalPick!=null&&G.pending.defPick!=null&&MY_IDX===G.turn){
+  if(G.pending?.type==='ssp_pick'&&G.pending.chalPick!=null&&G.pending.defPick!=null&&(MY_IDX===G.turn||(isBotDriver()&&isBot(G.turn)))){
     resolveSSP();
   }
   if(G.notification&&G.notification.ts>lastNotifTs){
@@ -1672,13 +1747,13 @@ function renderWinActions(){
 // ── HANDLERS ────────────────────────────────────────────────
 function disableBtn(){document.querySelectorAll('#abtns button').forEach(b=>b.disabled=true);}
 function onStartRoll(){disableBtn();const r=d6();animDice(r,700,v=>{const p=G.players[G.turn];if(v===6){const from=p.pos;p.pos=0;startMoveAnim(from,0,G.turn);clearSchranke(G.turn);addLog(`🎉 ${p.name} würfelt 6→Schrankenfeld!`);G.phase='schranken';if(G.turn===MY_IDX)notify('🎲',`${pn(p)} ${t('n_six_schranke')}`);}else{G.rollsLeft--;addLog(`${p.name} würfelt ${v}.`);if(G.rollsLeft<=0){addLog(`❌ Kein 6 in 3 Versuchen.`);endPhase();}}push();});}
-function onSchrankenRoll(){disableBtn();const r=d6();animDice(r,700,v=>{const p=G.players[G.turn];if(v===1){p.pos=-1;addLog(`${p.name} würfelt 1→Start!`);endPhase();notify('↩',`${pn(p)} ${t('n_back_start')}`);}else{const np=moveTo(G.turn,v);addLog(`${p.name} würfelt ${v}→${fn(np)}`);afterMove(G.turn);}push();});}
+function onSchrankenRoll(){disableBtn();const r=d6();animDice(r,700,v=>{const p=G.players[G.turn];if(v===1){const sp=p.pos;p.pos=-1;startMoveAnim(sp,-1,G.turn);addLog(`${p.name} würfelt 1→Start!`);endPhase();notify('↩',`${pn(p)} ${t('n_back_start')}`);}else{const np=moveTo(G.turn,v);addLog(`${p.name} würfelt ${v}→${fn(np)}`);afterMove(G.turn);}push();});}
 function onRoll(){disableBtn();const r=d6();animDice(r,700,v=>{const p=G.players[G.turn];if(p.pos>=29&&p.pos<=33){G.phase='becher';handleBecher(v);return;}const np=moveTo(G.turn,p.pos+v);addLog(`${p.name} würfelt ${v}→${fn(np)}${v===6?' 🎲 Nochmal!':''}`);if(v===6&&G.phase!=='effect'&&G.winner<0){if(G.players[G.turn]?.stats)G.players[G.turn].stats.sixes++;afterMove(G.turn);if(G.phase!=='effect'){G.phase='roll';addLog(`🎲 ${p.name} nochmal würfeln!`);notify('🎲',`${pn(p)} ${t('n_six_again')}`);}}else{afterMove(G.turn);}push();});}
 function onBecherRoll(){disableBtn();const r=d6();animDice(r,700,v=>handleBecher(v));}
 function handleBecher(v){const p=G.players[G.turn];if(p.pos===33){if(v===2){const hfp=p.pos;p.pos=34;startMoveAnim(hfp,34,G.turn);kick(G.turn,34);addLog(`${p.name} würfelt 2→Ziel🏆`);notify('🏆',`${pn(p)} ${t('n_becher2goal')}`);}else if(v===1){const hfp2=p.pos;p.pos=29;startMoveAnim(hfp2,29,G.turn);kick(G.turn,29);addLog(`${p.name} würfelt 1→B1!`);notify('😬',`${pn(p)} ${t('n_becher1back')}`);}else{addLog(`${p.name} würfelt ${v}→wartet.`);notify('⏳',`${pn(p)} ${t('n_becher_wait')}`);}}else{if(v%2===0){const np=Math.min(34,p.pos+1);const hfp3=p.pos;p.pos=np;startMoveAnim(hfp3,np,G.turn);kick(G.turn,np);addLog(`${p.name} würfelt ${v}→${fn(np)}`);}else addLog(`${p.name} würfelt ${v}→bleibt.`);}endPhase();push();}
 function onWinRoll(){disableBtn();const r=d6();animDice(r,500,v=>{addLog(`🏆 ${G.players[G.turn].name} würfelt ${v}→SIEG!`);notify('🏆',`🎉 ${pn(G.players[G.turn])} ${t('win_msg')}`);G.winner=G.turn;G.phase='done';push();});}
 function onSC(sc,dest){const p=G.players[G.turn];if(sc){const s=dest-10;const np=s>=5?22:10+s;p.pos=np;if(np===22)kick(G.turn,22);addLog(`✂ ${p.name} Abkürzung→${fn(np)}`);notify('✂',`${pn(p)} ${t('n_shortcut_took')} ${fn(np)}!`);}else{p.pos=dest;kick(G.turn,dest);addLog(`🛤 ${p.name} regulär→${fn(dest)}`);notify('🛤',`${pn(p)} ${t('n_regular_took')} ${fn(dest)}`);}G.pending=null;afterMove(G.turn);push();}
-function onTausch(di){const a=G.players[G.turn],b=G.players[di];const t=a.pos;a.pos=b.pos;b.pos=t;if(a.stats)a.stats.tausch++;addLog(`🔄 ${a.name}↔${b.name}`);notify('🔄',`${pn(a)} ↔ ${pn(b)} ${t('n_tausch_done')}`);G.pending=null;endPhase();push();}
+function onTausch(di){const a=G.players[G.turn],b=G.players[di];const tPos=a.pos;a.pos=b.pos;b.pos=tPos;if(a.stats)a.stats.tausch++;addLog(`🔄 ${a.name}↔${b.name}`);notify('🔄',`${pn(a)} ↔ ${pn(b)} ${t('n_tausch_done')}`);G.pending=null;endPhase();push();}
 function onHC(di){
   G.pending={type:'heraus_roll',defender:di};
   const att=G.players[G.turn], def=G.players[di];
@@ -1695,11 +1770,11 @@ function onHD(){
   push();
   // Local dice animation
   const dd=document.getElementById('ddisp');
-  let t=0;vibe(50);
+  let diceT=0;vibe(50);
   const iv=setInterval(()=>{
-    t+=55;
+    diceT+=55;
     dd.textContent=`${FACES[~~(Math.random()*6)]}⚔${FACES[~~(Math.random()*6)]}`;
-    if(t>=900){
+    if(diceT>=900){
       clearInterval(iv);
       dd.textContent=`${FACES[r1-1]}⚔${FACES[r2-1]}`;
       setTimeout(()=>{
@@ -1764,7 +1839,10 @@ function onSSPChoose(di){
 
 function onSSPPick(symbol){
   if(!G||!G.pending||G.pending.type!=='ssp_pick')return;
-  const isChal=G.turn===MY_IDX, isDef=G.pending.defender===MY_IDX;
+  // isChal: my turn OR bot driver driving a bot challenger
+  const isChal=G.turn===MY_IDX||(isBotDriver()&&isBot(G.turn));
+  // isDef: I am the defender OR bot driver driving a bot defender
+  const isDef=G.pending.defender===MY_IDX||(isBotDriver()&&isBot(G.pending.defender));
   if(isChal&&G.pending.chalPick==null){G.pending.chalPick=symbol;push();}
   else if(isDef&&G.pending.defPick==null){G.pending.defPick=symbol;push();}
 }
@@ -1781,9 +1859,12 @@ function resolveSSP(){
   // Show reveal banner to all
   notify('✂️',`${pn(att)} ${t('n_ssp_reveal')} ${ce} ${t('n_ssp_vs')} ${pn(def)} ${t('n_ssp_reveal')} ${de}`);
   push();
-  // After 2 seconds, execute result (only challenger's device)
+  // After 2 seconds, execute result (only challenger's device or bot driver)
+  const sspTs=G.pending.ts;
   setTimeout(()=>{
     if(!G||!G.pending||G.pending.type!=='ssp_reveal')return;
+    // Only execute if we are the right device
+    if(MY_IDX!==G.turn&&!(isBotDriver()&&isBot(G.turn)))return;
     if(SSP_BEATS[cp]===dp){
       if(att.pos>=0&&att.pos<34)att.pos=Math.min(34,att.pos+1);
       addLog(`✂️ SSP: ${att.name}(${ce}) schlägt ${def.name}(${de}) → ${att.name} +1!`);
@@ -1795,7 +1876,9 @@ function resolveSSP(){
       notify('✂️',`${pn(def)} (${de}) ${t('n_ssp_win_def')} ${pn(att)} (${ce})! ${t('n_ssp_all_plus2')}`);
       G.players.forEach((p,i)=>{
         if(i===G.turn||p.quit||p.pos<0||p.pos>=34)return;
+        const fp=p.pos;
         p.pos=Math.min(34,p.pos+2);
+        startMoveAnim(fp,p.pos,i);
       });
       G.pending=null;endPhase();push();
     } else {
@@ -1835,24 +1918,25 @@ async function createGame(){
     const url=`${location.origin}${location.pathname}?g=${id}`;
     window.history.pushState(null,'','?g='+id);
     document.getElementById('land-link').classList.remove('hidden');
-    document.getElementById('land-link').innerHTML=`<b>✅ Spiel erstellt!</b><br>Einmal per WhatsApp teilen:<br><br><b style="word-break:break-all">${url}</b><br><br><button class="bbtn blue" onclick="copyGL('${url}')" style="margin-bottom:8px">📋 Link kopieren</button><button class="bbtn purple" onclick="enterGame()">▶ Spiel starten</button>`;
+    document.getElementById('land-link').innerHTML=`<b>✅ Spiel erstellt!</b><br>Einmal per WhatsApp teilen:<br><br><b style="word-break:break-all">${url}</b><br><br><button class="bbtn blue" onclick="copyGL('${url}')" style="margin-bottom:8px">📋 Link kopieren</button><button class="bbtn purple" onclick="onP1EnterGame()">▶ Spiel starten</button>`;
   }catch(e){
     console.error('createGame error:',e);
     alert('Fehler: '+e.message);
   }
 }
 function copyGL(u){if(navigator.clipboard)navigator.clipboard.writeText(u).then(()=>alert('✅ Kopiert!'));else alert(u);}
-function enterGame(){showScreen('s-game');listenGame(GAME_ID);listenChat(GAME_ID);sizeCV();updateUI();applyLang();startGameTimer();startBotWatchdog();}
+function onP1EnterGame(){enterGame();}
+function enterGame(){showScreen('s-game');listenGame(GAME_ID);listenChat(GAME_ID);sizeCV();updateUI();applyLang();startGameTimer();startBotWatchdog();setTimeout(assignBotFigures,500);}
 function showJoinScreen(state){
   showScreen('s-join');const jb=document.getElementById('join-btns');jb.innerHTML='';
-  state.players.forEach((p,i)=>{const d=document.createElement('div');d.className='jbtn';d.innerHTML=`<div class="jdot" style="background:${p.color}"></div><div class="jname">${p.name}</div>`;d.onclick=()=>{MY_IDX=i;localStorage.setItem('sg_p_'+GAME_ID,String(i));enterGame();};jb.appendChild(d);});
+  state.players.forEach((p,i)=>{const d=document.createElement('div');d.className='jbtn';d.innerHTML=`<div class="jdot" style="background:${p.color}"></div><div class="jname">${p.name}${p.figure?' '+p.figure:''}</div>`;d.onclick=()=>{MY_IDX=i;localStorage.setItem('sg_p_'+GAME_ID,String(i));if(!p.figure){showFigurePicker(i,()=>enterGame());}else{enterGame();}};jb.appendChild(d);});
 }
 function shareLink(){const url=`${location.origin}${location.pathname}?g=${GAME_ID}`;if(navigator.share)navigator.share({title:'🎮 Schleudergang',url}).catch(()=>{});else if(navigator.clipboard)navigator.clipboard.writeText(url).then(()=>alert('✅ Link kopiert!'));else alert(url);}
 function showScreen(id){
   ['s-land','s-join','s-game'].forEach(s=>{const el=document.getElementById(s);if(!el)return;el.classList.remove('hidden');el.style.display=s===id?'flex':'none';});
   if(id==='s-game')document.getElementById('s-game').style.flexDirection='column';
 }
-function newGame(){stopGameTimer();hideStats();if(botWatchdog){clearInterval(botWatchdog);botWatchdog=null;}
+function newGame(){moveAnimQueue=[];moveAnim=null;if(moveAnimRAF){cancelAnimationFrame(moveAnimRAF);moveAnimRAF=null;}stopGameTimer();hideStats();document.getElementById('figure-screen')?.classList.remove('show');if(botWatchdog){clearInterval(botWatchdog);botWatchdog=null;}
   if(LISTENER){LISTENER();LISTENER=null;}
   if(CHAT_LISTENER){CHAT_LISTENER();CHAT_LISTENER=null;}
   unreadCount=0;lastMsgCount=0;
@@ -1904,6 +1988,17 @@ function onStartRematch(){
 function isBot(idx){
   if(!G||!G.players[idx])return false;
   return /^bot/i.test(G.players[idx].name.trim());
+}
+function assignBotFigures(){
+  if(!G||!DB||!GAME_ID)return;
+  const taken=G.players.filter(p=>p.figure).map(p=>p.figure);
+  const avail=FIGURES.filter(f=>!taken.includes(f));
+  G.players.forEach((p,i)=>{
+    if(isBot(i)&&!p.figure&&avail.length>0){
+      const fig=avail.splice(Math.floor(Math.random()*avail.length),1)[0];
+      DB.ref('games/'+GAME_ID+'/players/'+i+'/figure').set(fig);
+    }
+  });
 }
 function isBotTurn(){
   return G&&G.winner<0&&isBot(G.turn);
@@ -2174,6 +2269,55 @@ document.addEventListener('click',e=>{
     hideLangMenu();
 });
 
+// ── FIGURE PICKER ───────────────────────────────────────────
+const FIGURES=['🚀','👑','⚡','❤️','⭐','😈','🦄','⚔️'];
+let pendingFigureIdx=null;
+let selectedFigure=null;
+
+function showFigurePicker(playerIdx, onConfirm){
+  pendingFigureIdx=playerIdx;
+  selectedFigure=null;
+  const title=document.getElementById('fig-title');
+  const sub=document.getElementById('fig-subtitle');
+  const btn=document.getElementById('fig-confirm-btn');
+  if(title)title.textContent=t('fig_title');
+  if(sub)sub.textContent=t('fig_subtitle');
+  if(btn){btn.textContent=t('fig_confirm');btn.disabled=true;}
+  renderFigureGrid();
+  document.getElementById('figure-screen').classList.add('show');
+}
+
+function renderFigureGrid(){
+  const grid=document.getElementById('fig-grid');
+  if(!grid)return;
+  // Get taken figures from current game state
+  const taken={};
+  if(G&&G.players)G.players.forEach((p,i)=>{
+    if(p.figure&&i!==pendingFigureIdx)taken[p.figure]=p.name;
+  });
+  grid.innerHTML=FIGURES.map(f=>{
+    const isTaken=!!taken[f];
+    const isSelected=f===selectedFigure;
+    const owner=taken[f]?`<span class="fig-owner">${taken[f][0]}</span>`:'';
+    return `<button class="fig-btn${isTaken?' taken':''}${isSelected?' selected':''}" onclick="pickFigure('${f}')">${f}${owner}</button>`;
+  }).join('');
+}
+
+function pickFigure(fig){
+  selectedFigure=fig;
+  const btn=document.getElementById('fig-confirm-btn');
+  if(btn)btn.disabled=false;
+  renderFigureGrid();
+}
+function confirmFigure(){
+  if(!selectedFigure||pendingFigureIdx===null)return;
+  if(DB&&GAME_ID)DB.ref('games/'+GAME_ID+'/players/'+pendingFigureIdx+'/figure').set(selectedFigure);
+  document.getElementById('figure-screen').classList.remove('show');
+  // Update local G immediately
+  if(G&&G.players[pendingFigureIdx])G.players[pendingFigureIdx].figure=selectedFigure;
+}
+
+// ── FIGURE PICKER ───────────────────────────────────────────
 // ── GAME TIMER ──────────────────────────────────────────────
 let timerInterval=null;
 function startGameTimer(){
