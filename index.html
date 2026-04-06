@@ -79,6 +79,43 @@ html,body{background:var(--bg);color:var(--tx);font-family:'Segoe UI',system-ui,
 .spinner{width:30px;height:30px;border:3px solid rgba(168,85,247,.2);border-top-color:var(--acc);border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 10px}
 @keyframes spin{to{transform:rotate(360deg)}}
 #waiting-msg{font-size:.88em;color:#c4b5fd}
+/* Stats screen */
+#stats-screen{position:fixed;inset:0;background:rgba(0,0,0,.93);z-index:410;display:none;align-items:flex-start;justify-content:center;padding:16px;overflow-y:auto}
+#stats-screen.show{display:flex}
+.stats-card{background:linear-gradient(135deg,#1a1035,#0d0820);border:1.5px solid rgba(168,85,247,.3);border-radius:18px;padding:22px;max-width:400px;width:100%;margin-top:8px}
+.stats-title{font-size:1.1em;font-weight:900;color:#e9d5ff;text-align:center;margin-bottom:16px;letter-spacing:1px}
+.stats-time{text-align:center;font-size:.8em;color:#9ca3af;margin-bottom:18px;padding:8px;background:rgba(255,255,255,.04);border-radius:10px}
+.stat-row{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:12px;margin-bottom:8px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07)}
+.stat-icon{font-size:1.4em;flex-shrink:0;width:28px;text-align:center}
+.stat-body{flex:1}
+.stat-label{font-size:.75em;color:#9ca3af;margin-bottom:2px}
+.stat-value{font-size:.92em;font-weight:700;color:#e9d5ff}
+.stat-name{font-weight:900}
+#game-timer{font-size:.78em;color:#9ca3af;padding:4px 8px;background:rgba(255,255,255,.05);border-radius:8px;font-variant-numeric:tabular-nums}
+/* Stats screen */
+#stats-screen{position:fixed;inset:0;background:rgba(0,0,0,.93);z-index:410;display:none;align-items:flex-start;justify-content:center;padding:16px;overflow-y:auto}
+#stats-screen.show{display:flex}
+.stats-card{background:linear-gradient(135deg,#1a1035,#0d0820);border:1.5px solid rgba(168,85,247,.3);border-radius:18px;padding:22px;max-width:400px;width:100%;margin-top:8px}
+.stats-title{font-size:1.1em;font-weight:900;color:#e9d5ff;text-align:center;margin-bottom:16px;letter-spacing:1px}
+.stats-time{text-align:center;font-size:.8em;color:#9ca3af;margin-bottom:18px;padding:8px;background:rgba(255,255,255,.04);border-radius:10px}
+.stat-row{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:12px;margin-bottom:8px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07)}
+.stat-icon{font-size:1.4em;flex-shrink:0;width:28px;text-align:center}
+.stat-body{flex:1}
+.stat-label{font-size:.75em;color:#9ca3af;margin-bottom:2px}
+.stat-value{font-size:.92em;font-weight:700;color:#e9d5ff}
+#game-timer{font-size:.78em;color:#9ca3af;padding:4px 8px;background:rgba(255,255,255,.05);border-radius:8px;font-variant-numeric:tabular-nums}
+/* Stats screen */
+#stats-screen{position:fixed;inset:0;background:rgba(0,0,0,.93);z-index:410;display:none;align-items:flex-start;justify-content:center;padding:16px;overflow-y:auto}
+#stats-screen.show{display:flex}
+.stats-card{background:linear-gradient(135deg,#1a1035,#0d0820);border:1.5px solid rgba(168,85,247,.3);border-radius:18px;padding:22px;max-width:400px;width:100%;margin-top:8px}
+.stats-title{font-size:1.1em;font-weight:900;color:#e9d5ff;text-align:center;margin-bottom:16px;letter-spacing:1px}
+.stats-time{text-align:center;font-size:.8em;color:#9ca3af;margin-bottom:18px;padding:8px;background:rgba(255,255,255,.04);border-radius:10px}
+.stat-row{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:12px;margin-bottom:8px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07)}
+.stat-icon{font-size:1.4em;flex-shrink:0;width:28px;text-align:center}
+.stat-body{flex:1}
+.stat-label{font-size:.75em;color:#9ca3af;margin-bottom:2px}
+.stat-value{font-size:.92em;font-weight:700;color:#e9d5ff}
+#game-timer{font-size:.78em;color:#9ca3af;padding:4px 8px;background:rgba(255,255,255,.05);border-radius:8px;font-variant-numeric:tabular-nums}
 .lang-btn{background:rgba(255,255,255,.06);border:1.5px solid rgba(255,255,255,.1);border-radius:8px;color:var(--sub);padding:5px 9px;cursor:pointer;font-size:.82em;transition:all .15s}
 .lang-btn.active{background:rgba(168,85,247,.2);border-color:var(--acc);color:var(--tx);font-weight:700}
 #lang-bar{display:flex;gap:5px;padding:4px 14px;flex-shrink:0}
@@ -260,6 +297,8 @@ html,body{background:var(--bg);color:var(--tx);font-family:'Segoe UI',system-ui,
   <div id="topbar">
     <div class="game-title">🎮 SCHLEUDERGANG</div>
     <div class="tbar-btns">
+      <span id="game-timer" class="hidden">⏱ 0:00</span>
+      <span id="game-timer" class="hidden">⏱ 0:00</span>
       <button class="icon-btn" onclick="location.reload()" title="Seite neu laden">🔄</button>
       <button class="icon-btn" onclick="showLangMenu()" title="Sprache">🌐</button>
       <button class="icon-btn" onclick="shareLink()">🔗</button>
@@ -389,6 +428,33 @@ html,body{background:var(--bg);color:var(--tx);font-family:'Segoe UI',system-ui,
 
 <!-- rematch screen removed -->
 
+<!-- Stats Screen -->
+<div id="stats-screen">
+  <div class="stats-card">
+    <div class="stats-title" id="stats-title">📊 Spielstatistiken</div>
+    <div class="stats-time" id="stats-time"></div>
+    <div id="stats-rows"></div>
+    <button class="bbtn purple" onclick="hideStats()" style="margin-top:12px" id="stats-close-btn">✓ OK</button>
+  </div>
+</div>
+<!-- Stats Screen -->
+<div id="stats-screen">
+  <div class="stats-card">
+    <div class="stats-title" id="stats-title">📊 Spielstatistiken</div>
+    <div class="stats-time" id="stats-time"></div>
+    <div id="stats-rows"></div>
+    <button class="bbtn purple" onclick="hideStats()" style="margin-top:12px" id="stats-close-btn">✓ OK</button>
+  </div>
+</div>
+<!-- Stats Screen -->
+<div id="stats-screen">
+  <div class="stats-card">
+    <div class="stats-title" id="stats-title">📊 Spielstatistiken</div>
+    <div class="stats-time" id="stats-time"></div>
+    <div id="stats-rows"></div>
+    <button class="bbtn purple" onclick="hideStats()" style="margin-top:12px" id="stats-close-btn">✓ OK</button>
+  </div>
+</div>
 <div id="win-screen"><div class="wcard"><div class="wtrophy">🏆</div><h2 id="wmsg"></h2>
   <div id="win-actions" style="margin-top:8px"></div>
 </div></div>
@@ -420,6 +486,7 @@ de: {
   title:'🎮 SCHLEUDERGANG', subtitle:'Das selbst erfundene Familien-Brettspiel',
   players_label:'Spielernamen eingeben (2–5 Spieler):', add_player:'＋ Spieler hinzufügen',
   create_game:'🎮 Spiel erstellen', who_are_you:'Wer bist du?',
+  you_are_up:'du bist dran!', challenges:'fordert heraus', choosing_opponent:'wählt einen Gegner',
   next_player:'▶ Nächster Spieler', roll_dice:'🎲 Würfeln!',
   need_six:'🎲 Würfeln – brauche eine 6!', tries:'Versuch', tries_pl:'Versuche',
   schranke_rule:'⚡ Schrankenfeld! 1=zurück, 2-6=vorwärts',
@@ -462,11 +529,57 @@ de: {
   r_ssp:'Stein-Schere-Papier ✂️ (F16): Einen Gegner wählen. Beide wählen gleichzeitig ihr Symbol. Gewinner rückt 1 vor. Verlierer: alle anderen rücken 2 vor. Unentschieden = nochmal.',
   r_bot:'Bot: Spieler mit dem Namen "Bot" (oder beginnend mit "Bot") werden automatisch gesteuert.',
   r_quit:'Aufgeben: Mit 🏳 jederzeit aufgeben. Der Spieler wird entfernt.',
+  // Notifications
+  n_six_schranke:'würfelt eine 6 → Schrankenfeld!',
+  n_back_start:'würfelt 1 → zurück auf den Startteller!',
+  n_six_again:'würfelt eine 6 – nochmal würfeln!',
+  n_kicked:'wird rausgeschmissen → zurück auf das Schrankenfeld!',
+  n_displaced:'wird vom Schrankenfeld auf den Startteller verdrängt!',
+  n_arrow_forward:'rückt automatisch 1 Feld vor!', n_arrow:'Pfeilfeld!',
+  n_sling_back:'wird auf Feld 10 zurückgeschleudert!',
+  n_sling_shortcut:'wird auf Feld 10 zurückgeschleudert! Abkürzung verfügbar.',
+  n_tausch_land:'landet auf dem Tauschfeld! Einen Gegner wählen – Pflicht!',
+  n_heraus_land:'landet auf dem Herausforderungsfeld! Ein Duell steht bevor!',
+  n_goal_next:'steht auf dem Zielfeld! Noch 1 Wurf zum Sieg!',
+  n_becher2goal:'würfelt eine 2 → Zielfeld! Noch 1 Wurf zum Sieg!',
+  n_becher1back:'würfelt eine 1 auf B5 → zurück auf B1!',
+  n_becher_wait:'auf B5 – nur eine 2 bringt weiter!',
+  n_shortcut_took:'nimmt die Abkürzung →',
+  n_regular_took:'nimmt den regulären Weg →',
+  n_tausch_done:'tauschen die Positionen!',
+  n_duel_challenge:'fordert zum Duell heraus!',
+  n_duel_running:'– Duell läuft...',
+  n_duel_wins:'gewinnt das Duell gegen',
+  n_duel_draw:'Gleichstand im Duell', n_duel_reroll:'– nochmal würfeln!',
+  n_duel_plus1:'+1 vor,', n_duel_minus1:'-1 zurück.',
+  n_ssp_choose:'landet auf dem Stein-Schere-Papier-Feld! Einen Gegner wählen!',
+  n_ssp_challenge:'fordert beim Stein-Schere-Papier heraus!',
+  n_ssp_reveal:'wählt', n_ssp_vs:'–',
+  n_ssp_win_chal:'schlägt', n_ssp_win_plus1:'rückt 1 Feld vor!',
+  n_ssp_win_def:'schlägt', n_ssp_all_plus2:'Alle anderen rücken 2 Felder vor!',
+  n_ssp_draw:'Unentschieden!', n_ssp_draw_retry:'– nochmal wählen!',
+  n_quit:'hat aufgegeben und scheidet aus!',
+  n_all_quit_win:'gewinnt – alle anderen haben aufgegeben!',
+  // Stats
+  stats_title:'📊 Spielstatistiken',
+  stats_duration:'Spieldauer',
+  stats_most_kicked:'Größter Unruhestifter 💥',
+  stats_most_got_kicked:'Meistens rausgeflogen 😵',
+  stats_duel_king:'Duellkönig ⚔️',
+  stats_duel_loser:'Pechvogel im Duell 😅',
+  stats_swap_master:'Tauschkünstler 🔄',
+  stats_ssp_king:'Stein-Schere-Papier König ✂️',
+  stats_six_king:'Sechser-Glückspilz 🎲',
+  stats_times:'Mal',
+  stats_wins:'Siege',
+  stats_no_data:'Keine Daten',
+  n_new_round:'Neue Runde beginnt!',
 },
 it: {
   title:'🎮 SCHLEUDERGANG', subtitle:'Il gioco da tavolo inventato in famiglia',
   players_label:'Inserisci i nomi (2–5 giocatori):', add_player:'＋ Aggiungi giocatore',
   create_game:'🎮 Crea partita', who_are_you:'Chi sei?',
+  you_are_up:'è il tuo turno!', challenges:'sfida', choosing_opponent:'sceglie un avversario',
   next_player:'▶ Prossimo giocatore', roll_dice:'🎲 Lancia!',
   need_six:'🎲 Lancia – serve un 6!', tries:'tentativo', tries_pl:'tentativi',
   schranke_rule:'⚡ Sbarra! 1=indietro, 2-6=avanti',
@@ -508,11 +621,55 @@ it: {
   r_ssp:'Sasso-Carta-Forbici ✂️ (F16): Scegli avversario. Entrambi scelgono simbolo. Vincitore +1. Sconfitto: tutti gli altri +2. Parità = rilancia.',
   r_bot:'Bot: Giocatori con nome "Bot" sono controllati automaticamente.',
   r_quit:'Ritirarsi: Con 🏳 puoi ritirarti. Il giocatore viene rimosso.',
+  n_six_schranke:'lancia un 6 → campo sbarra!',
+  n_back_start:'lancia 1 → torna al piattino!',
+  n_six_again:'lancia un 6 – lancia ancora!',
+  n_kicked:'viene eliminato → torna al campo sbarra!',
+  n_displaced:'viene spostato dal campo sbarra al piattino!',
+  n_arrow_forward:'avanza automaticamente di 1!', n_arrow:'Campo freccia!',
+  n_sling_back:'viene catapultato al campo 10!',
+  n_sling_shortcut:'viene catapultato al campo 10! Scorciatoia disponibile.',
+  n_tausch_land:'atterra sul campo scambio! Scegli un giocatore – obbligatorio!',
+  n_heraus_land:'atterra sul campo sfida! Un duello si avvicina!',
+  n_goal_next:'è sul traguardo! Ancora 1 lancio per vincere!',
+  n_becher2goal:'lancia un 2 → traguardo! Ancora 1 lancio!',
+  n_becher1back:'lancia 1 su B5 → torna a B1!',
+  n_becher_wait:'su B5 – solo un 2 va avanti!',
+  n_shortcut_took:'prende la scorciatoia →',
+  n_regular_took:'prende il percorso normale →',
+  n_tausch_done:'si scambiano le posizioni!',
+  n_duel_challenge:'sfida a duello!',
+  n_duel_running:'– duello in corso...',
+  n_duel_wins:'vince il duello contro',
+  n_duel_draw:'Parità nel duello', n_duel_reroll:'– rilancia!',
+  n_duel_plus1:'+1 avanti,', n_duel_minus1:'-1 indietro.',
+  n_ssp_choose:'atterra sul campo Sasso-Carta-Forbici! Scegli avversario!',
+  n_ssp_challenge:'sfida a Sasso-Carta-Forbici!',
+  n_ssp_reveal:'sceglie', n_ssp_vs:'–',
+  n_ssp_win_chal:'batte', n_ssp_win_plus1:'avanza di 1!',
+  n_ssp_win_def:'batte', n_ssp_all_plus2:'Tutti gli altri avanzano di 2!',
+  n_ssp_draw:'Parità!', n_ssp_draw_retry:'– scegliere ancora!',
+  n_quit:'si è ritirato/a!',
+  n_all_quit_win:'vince – tutti gli altri si sono ritirati!',
+  stats_title:'📊 Statistiche partita',
+  stats_duration:'Durata partita',
+  stats_most_kicked:'Disturbatore principale 💥',
+  stats_most_got_kicked:'Il più eliminato 😵',
+  stats_duel_king:'Re del duello ⚔️',
+  stats_duel_loser:'Sfigato nei duelli 😅',
+  stats_swap_master:'Maestro dello scambio 🔄',
+  stats_ssp_king:'Re Sasso-Carta-Forbici ✂️',
+  stats_six_king:'Fortunato con i sei 🎲',
+  stats_times:'volte',
+  stats_wins:'vittorie',
+  stats_no_data:'Nessun dato',
+  n_new_round:'Nuovo round inizia!',
 },
 en: {
   title:'🎮 SCHLEUDERGANG', subtitle:'The family-invented board game',
   players_label:'Enter player names (2–5 players):', add_player:'＋ Add player',
   create_game:'🎮 Create game', who_are_you:'Who are you?',
+  you_are_up:'your turn!', challenges:'challenges', choosing_opponent:'is choosing an opponent',
   next_player:'▶ Next player', roll_dice:'🎲 Roll!',
   need_six:'🎲 Roll – need a 6!', tries:'attempt', tries_pl:'attempts',
   schranke_rule:'⚡ Barrier! 1=back, 2-6=forward',
@@ -554,11 +711,55 @@ en: {
   r_ssp:'Rock-Paper-Scissors ✂️ (F16): Choose opponent. Both choose symbol simultaneously. Winner moves +1. Loser: all others move +2. Tie = redo.',
   r_bot:'Bot: Players named "Bot" are controlled automatically.',
   r_quit:'Quit: Use 🏳 to quit anytime. Player is removed.',
+  n_six_schranke:'rolls a 6 → barrier field!',
+  n_back_start:'rolls 1 → back to start plate!',
+  n_six_again:'rolls a 6 – roll again!',
+  n_kicked:'is kicked → back to barrier field!',
+  n_displaced:'is displaced from barrier to start plate!',
+  n_arrow_forward:'moves +1 automatically!', n_arrow:'Arrow field!',
+  n_sling_back:'is slung back to field 10!',
+  n_sling_shortcut:'is slung back to field 10! Shortcut available.',
+  n_tausch_land:'lands on swap field! Choose a player – mandatory!',
+  n_heraus_land:'lands on challenge field! A duel awaits!',
+  n_goal_next:'is on goal field! 1 more roll to win!',
+  n_becher2goal:'rolls a 2 → goal field! 1 more roll!',
+  n_becher1back:'rolls 1 on B5 → back to B1!',
+  n_becher_wait:'on B5 – only a 2 moves forward!',
+  n_shortcut_took:'takes the shortcut →',
+  n_regular_took:'takes the regular path →',
+  n_tausch_done:'swap positions!',
+  n_duel_challenge:'challenges to a duel!',
+  n_duel_running:'– duel in progress...',
+  n_duel_wins:'wins the duel against',
+  n_duel_draw:'Draw in duel', n_duel_reroll:'– roll again!',
+  n_duel_plus1:'+1 forward,', n_duel_minus1:'-1 back.',
+  n_ssp_choose:'lands on Rock-Paper-Scissors field! Choose opponent!',
+  n_ssp_challenge:'challenges to Rock-Paper-Scissors!',
+  n_ssp_reveal:'chooses', n_ssp_vs:'–',
+  n_ssp_win_chal:'beats', n_ssp_win_plus1:'moves +1!',
+  n_ssp_win_def:'beats', n_ssp_all_plus2:'All others move +2!',
+  n_ssp_draw:'Draw!', n_ssp_draw_retry:'– choose again!',
+  n_quit:'has quit!',
+  n_all_quit_win:'wins – all others quit!',
+  stats_title:'📊 Game statistics',
+  stats_duration:'Game duration',
+  stats_most_kicked:'Biggest troublemaker 💥',
+  stats_most_got_kicked:'Most eliminated 😵',
+  stats_duel_king:'Duel king ⚔️',
+  stats_duel_loser:'Duel unlucky 😅',
+  stats_swap_master:'Swap master 🔄',
+  stats_ssp_king:'Rock-Paper-Scissors king ✂️',
+  stats_six_king:'Lucky with sixes 🎲',
+  stats_times:'times',
+  stats_wins:'wins',
+  stats_no_data:'No data',
+  n_new_round:'New round begins!',
 },
 sk: {
   title:'🎮 SCHLEUDERGANG', subtitle:'Rodinná spoločenská hra',
   players_label:'Zadaj mená hráčov (2–5 hráčov):', add_player:'＋ Pridať hráča',
   create_game:'🎮 Vytvoriť hru', who_are_you:'Kto si?',
+  you_are_up:'si na rade!', challenges:'vyzýva', choosing_opponent:'vyberá súpera',
   next_player:'▶ Ďalší hráč', roll_dice:'🎲 Hodiť!',
   need_six:'🎲 Hodiť – potrebuješ 6!', tries:'pokus', tries_pl:'pokusy',
   schranke_rule:'⚡ Závora! 1=späť, 2-6=vpred',
@@ -600,6 +801,49 @@ sk: {
   r_ssp:'Kameň-Nožnice-Papier ✂️ (F16): Vyber súpera. Obaja volia symbol súčasne. Víťaz +1. Porazený: všetci ostatní +2. Remíza = zopakovať.',
   r_bot:'Bot: Hráči s menom "Bot" sú riadení automaticky.',
   r_quit:'Vzdanie: S 🏳 kedykoľvek vzdať. Hráč je odstránený.',
+  n_six_schranke:'hodí 6 → závorové pole!',
+  n_back_start:'hodí 1 → späť na štart!',
+  n_six_again:'hodí 6 – hodiť znova!',
+  n_kicked:'je vyhodený → závorové pole!',
+  n_displaced:'je presunutý zo závorového poľa na štart!',
+  n_arrow_forward:'automaticky +1 vpred!', n_arrow:'Šípkové pole!',
+  n_sling_back:'je katapultovaný späť na pole 10!',
+  n_sling_shortcut:'je katapultovaný na pole 10! Skratka dostupná.',
+  n_tausch_land:'pristane na výmennom poli! Vyber hráča – povinné!',
+  n_heraus_land:'pristane na výzve! Súboj čaká!',
+  n_goal_next:'stojí na cieli! Ešte 1 hod na výhru!',
+  n_becher2goal:'hodí 2 → cieľ! Ešte 1 hod!',
+  n_becher1back:'hodí 1 na B5 → späť na B1!',
+  n_becher_wait:'na B5 – len 2 ide ďalej!',
+  n_shortcut_took:'ide skratkou →',
+  n_regular_took:'ide normálnou cestou →',
+  n_tausch_done:'si vymenia pozície!',
+  n_duel_challenge:'vyzýva na súboj!',
+  n_duel_running:'– súboj prebieha...',
+  n_duel_wins:'vyhráva súboj proti',
+  n_duel_draw:'Remíza v súboji', n_duel_reroll:'– hodiť znova!',
+  n_duel_plus1:'+1 vpred,', n_duel_minus1:'-1 späť.',
+  n_ssp_choose:'pristane na Kameň-Nožnice-Papier! Vyber súpera!',
+  n_ssp_challenge:'vyzýva na Kameň-Nožnice-Papier!',
+  n_ssp_reveal:'vyberá', n_ssp_vs:'–',
+  n_ssp_win_chal:'porazí', n_ssp_win_plus1:'posúva sa o 1!',
+  n_ssp_win_def:'porazí', n_ssp_all_plus2:'Všetci ostatní sa posúvajú o 2!',
+  n_ssp_draw:'Remíza!', n_ssp_draw_retry:'– vybrať znova!',
+  n_quit:'vzdal/a to!',
+  n_all_quit_win:'vyhrá – všetci ostatní vzdali!',
+  stats_title:'📊 Štatistiky hry',
+  stats_duration:'Trvanie hry',
+  stats_most_kicked:'Najväčší rušiteľ 💥',
+  stats_most_got_kicked:'Najviac vyhodený 😵',
+  stats_duel_king:'Kráľ súbojov ⚔️',
+  stats_duel_loser:'Smoliar v súbojoch 😅',
+  stats_swap_master:'Majster výmeny 🔄',
+  stats_ssp_king:'Kráľ Kameň-Nožnice-Papier ✂️',
+  stats_six_king:'Šťastlivec so šestkami 🎲',
+  stats_times:'krát',
+  stats_wins:'výhier',
+  stats_no_data:'Žiadne dáta',
+  n_new_round:'Nové kolo začína!',
 }
 };
 
@@ -880,8 +1124,35 @@ function renderBoard(){
     ctx.textAlign='center';ctx.fillText('START',sx(12),sy(18));
 
     // Player tokens on board
+    // During animation: move the animated player's token along the path
+    let animVisualPos = {};
+    if(moveAnim){
+      const elapsed=performance.now()-moveAnim.startTime;
+      const tAnim=Math.min(1,elapsed/moveAnim.duration);
+      const path=moveAnim.path;
+      const n=path.length;
+      // Find which field is currently brightest (peak alpha)
+      let bestField=path[0], bestAlpha=0;
+      path.forEach((fi,i)=>{
+        const slotCenter=(i+0.5)/n;
+        const slotHW=0.5/n;
+        const dist=Math.abs(tAnim-slotCenter);
+        if(dist<slotHW){
+          const alpha=Math.pow(Math.cos(dist/slotHW*Math.PI*0.5),2);
+          if(alpha>bestAlpha){bestAlpha=alpha;bestField=fi;}
+        }
+      });
+      if(bestField>=0) animVisualPos[moveAnim.playerIdx]=bestField;
+    }
+
     const pm={};
-    G.players.forEach((p,i)=>{if(p.pos>=0){if(!pm[p.pos])pm[p.pos]=[];pm[p.pos].push(i);}});
+    G.players.forEach((p,i)=>{
+      if(p.pos<0)return;
+      const drawPos = (animVisualPos[i]!==undefined) ? animVisualPos[i] : p.pos;
+      if(drawPos<0)return;
+      if(!pm[drawPos])pm[drawPos]=[];
+      pm[drawPos].push(i);
+    });
     Object.entries(pm).forEach(([pos,idxs])=>{
       const[x,y]=FP[+pos]||FP[0];
       idxs.forEach((pi,ii)=>{
@@ -904,8 +1175,9 @@ function renderBoard(){
 // ── STATE ────────────────────────────────────────────────────
 let G=null,GAME_ID=null,MY_IDX=null,LISTENER=null;
 function newState(names){
-  return{players:names.map((n,i)=>({name:n,color:PCOLS[i],pos:-1,kicked:false,wasKicked:false,visitedSchlB:false,kickedToSchranke:false,quit:false})),
-    turn:0,phase:'start_roll',rollsLeft:3,pending:null,winner:-1,notification:null,
+  return{players:names.map((n,i)=>({name:n,color:PCOLS[i],pos:-1,kicked:false,wasKicked:false,visitedSchlB:false,kickedToSchranke:false,quit:false,
+      stats:{kicked:0,gotKicked:0,duelsWon:0,duelsLost:0,tausch:0,sspWon:0,sspLost:0,sixes:0}})),
+    turn:0,phase:'start_roll',rollsLeft:3,pending:null,winner:-1,notification:null,startedAt:Date.now(),
     log:[`Spiel gestartet! ${names[0]} beginnt.`]};
 }
 function addLog(m){G.log.unshift(m);}
@@ -1093,7 +1365,7 @@ function listenGame(id){
     else if(wasFinished&&G.winner<0){
       // New game started by host → close win screen + show banner
       document.getElementById('win-screen').classList.remove('show');
-      showInfoBanner('🎮','Neue Runde beginnt!',1500);
+      showInfoBanner('🎮',t('n_new_round'),1500);
     }
   });
   LISTENER=()=>ref.off('value',h);
@@ -1112,12 +1384,12 @@ function clearSchranke(myIdx){
       // Was kicked there → goes to Startteller, needs 6 to re-enter
       p.pos=-1; p.kickedToSchranke=false;
       addLog(`${p.name} vom Schrankenfeld auf den Startteller verdrängt!`);
-      notify('↩',`${pn(p)} wird vom Schrankenfeld auf den Startteller verdrängt!`);
+      notify('↩',`${pn(p)} ${t('n_displaced')}`);
     } else {
       // Was there via 6 → also goes to Startteller
       p.pos=-1;
       addLog(`${p.name} vom Schrankenfeld auf den Startteller verdrängt!`);
-      notify('↩',`${pn(p)} wird vom Schrankenfeld auf den Startteller verdrängt!`);
+      notify('↩',`${pn(p)} ${t('n_displaced')}`);
     }
   });
 }
@@ -1126,9 +1398,11 @@ function kick(myIdx,pos){
   G.players.forEach((p,i)=>{
     if(i===myIdx||p.pos!==pos||pos<0||p.quit)return;
     p.pos=0; p.kicked=true; p.wasKicked=true;
-    p.kickedToSchranke=true; // flag: next turn = roll (not schranken)
+    p.kickedToSchranke=true;
+    if(p.stats)p.stats.gotKicked++;
+    if(G.players[myIdx]?.stats)G.players[myIdx].stats.kicked++;
     addLog(`💥 ${p.name} rausgeschmissen → Schrankenfeld!`);
-    notify('💥',`${pn(p)} wird rausgeschmissen → zurück auf das Schrankenfeld!`);
+    notify('💥',`${pn(p)} ${t('n_kicked')}`);
   });
 }
 function moveTo(idx,rawPos){
@@ -1153,28 +1427,28 @@ function moveTo(idx,rawPos){
 function afterMove(idx){
   const p=G.players[idx];const t=ft(p.pos);
   if(p.pos===34){addLog(`🏆 ${p.name} am Zielfeld! 1 Wurf zum Sieg!`);
-    notify('🏆',`${pn(p)} steht auf dem Zielfeld! Noch 1 Wurf zum Sieg!`);
+    notify('🏆',`${pn(p)} ${t('n_goal_next')}`);
     endPhase();return;}
   // Arrow field banner
-  if(t==='arrow'){notify('➡',`Pfeilfeld! ${pn(p)} rückt automatisch 1 Feld vor!`);}
+  if(t==='arrow'){notify('➡',`${t('n_arrow')} ${pn(p)} ${t('n_arrow_forward')}`);}
   if(t==='schlB'){
     if(p.visitedSchlB){addLog(`${p.name} auf F22 – kein Effekt (2. Besuch).`);endPhase();return;}
     p.visitedSchlB=true;
     if(p.wasKicked){const fp=p.pos;p.pos=10;startMoveAnim(fp,10,idx);kick(idx,10);addLog(`💫 ${p.name}→F10! Abkürzung verfügbar!`);
-      notify('💫',`${pn(p)} wird auf Feld 10 zurückgeschleudert! Abkürzung verfügbar.`);
+      notify('💫',`${pn(p)} ${t('n_sling_shortcut')}`);
       G.phase='effect';G.pending={type:'shortcut_choose',intendedPos:10};return;}
     const fp2=p.pos;p.pos=10;startMoveAnim(fp2,10,idx);kick(idx,10);clearSchranke(idx);addLog(`💫 ${p.name}→F10!`);
-    notify('💫',`${pn(p)} wird auf Feld 10 zurückgeschleudert!`);
+    notify('💫',`${pn(p)} ${t('n_sling_back')}`);
     endPhase();return;
   }
   if(t==='ssp'){
     const sspOpts=G.players.filter((_,i)=>i!==idx&&!G.players[i].quit&&G.players[i].pos>=0);
-    if(sspOpts.length===0){notify('✂️',`${pn(p)} landet auf dem SSP-Feld – kein Gegner!`);endPhase();return;}
-    notify('✂️',`${pn(p)} landet auf dem Stein-Schere-Papier-Feld! Einen Gegner wählen!`);
+    if(sspOpts.length===0){notify('✂️',`${pn(p)} ${t('n_ssp_choose')} ${t('no_opponent')}`);endPhase();return;}
+    notify('✂️',`${pn(p)} ${t('n_ssp_choose')}`);
     G.phase='effect';G.pending={type:'ssp_choose'};return;
   }
-  if(t==='tausch'){notify('🔄',`${pn(p)} landet auf dem Tauschfeld! Einen Gegner wählen – Pflicht!`);G.phase='effect';G.pending={type:'tausch'};return;}
-  if(t==='heraus'){notify('⚔',`${pn(p)} landet auf dem Herausforderungsfeld! Ein Duell steht bevor!`);G.phase='effect';G.pending={type:'heraus_choose'};return;}
+  if(t==='tausch'){notify('🔄',`${pn(p)} ${t('n_tausch_land')}`);G.phase='effect';G.pending={type:'tausch'};return;}
+  if(t==='heraus'){notify('⚔',`${pn(p)} ${t('n_heraus_land')}`);G.phase='effect';G.pending={type:'heraus_choose'};return;}
   endPhase();
 }
 function endPhase(){G.phase='done';}
@@ -1235,6 +1509,9 @@ function animDice(result,ms,cb){
 function updateUI(){
   if(!G)return;
   renderBoard();
+  if(G&&G.startedAt&&!timerInterval)startGameTimer();
+  // Ensure stats exist on all players (safety for old Firebase states)
+  if(G&&G.players)G.players.forEach(p=>{if(!p.stats)p.stats={kicked:0,gotKicked:0,duelsWon:0,duelsLost:0,tausch:0,sspWon:0,sspLost:0,sixes:0};});
   // Resolve SSP when both have picked - challenger's device executes
   if(G.pending?.type==='ssp_pick'&&G.pending.chalPick!=null&&G.pending.defPick!=null&&MY_IDX===G.turn){
     resolveSSP();
@@ -1268,13 +1545,13 @@ function updateUI(){
     const pen=G.pending;
     if(pen&&pen.type==='heraus_roll'){
       const att=G.players[G.turn],def=G.players[pen.defender];
-      document.getElementById('waiting-msg').innerHTML=`⚔ <b>${att.name}</b> fordert <b style="color:${def.color}">${def.name}</b> zum Duell heraus!`;
+      document.getElementById('waiting-msg').innerHTML=`⚔ <b>${att.name}</b> ${t('challenges')} <b style="color:${def.color}">${def.name}</b>!`;
     }else if(pen&&pen.type==='ssp_choose'){
-      document.getElementById('waiting-msg').innerHTML=`✂️ <b>${G.players[G.turn].name}</b> wählt einen SSP-Gegner…`;
+      document.getElementById('waiting-msg').innerHTML=`✂️ <b>${G.players[G.turn].name}</b> ${t('choosing_opponent')}…`;
     }else if(pen&&pen.type==='ssp_pick'){
-      document.getElementById('waiting-msg').innerHTML=`🪨 SSP-Duell läuft – beide wählen…`;
+      document.getElementById('waiting-msg').innerHTML=`🪨 ${t('ssp_pick_msg')}`;
     }else if(pen&&pen.type==='ssp_choose'){
-      document.getElementById('waiting-msg').innerHTML=`✂️ <b>${G.players[G.turn].name}</b> wählt SSP-Gegner…`;
+      document.getElementById('waiting-msg').innerHTML=`✂️ <b>${G.players[G.turn].name}</b> ${t('choosing_opponent')}…`;
     }else if(pen&&pen.type==='ssp_reveal'){
       const ce2=SSP_EMOJI[pen.chalPick],de2=SSP_EMOJI[pen.defPick];
       document.getElementById('waiting-msg').innerHTML=`${ce2} vs ${de2} – Ergebnis folgt…`;
@@ -1282,9 +1559,9 @@ function updateUI(){
       const myP=MY_IDX===pen?.defender?'Du bist herausgefordert!':'Duell läuft…';
       document.getElementById('waiting-msg').innerHTML=`🪨 SSP: ${myP}`;
     }else if(pen&&pen.type==='heraus_choose'){
-      document.getElementById('waiting-msg').innerHTML=`⚔ <b>${G.players[G.turn].name}</b> wählt einen Gegner für das Duell…`;
+      document.getElementById('waiting-msg').innerHTML=`⚔ <b>${G.players[G.turn].name}</b> ${t('choosing_opponent')}…`;
     }else{
-      document.getElementById('waiting-msg').textContent=`⏳ Warte auf ${G.players[G.turn].name}…`;
+      document.getElementById('waiting-msg').textContent=`${t('waiting_for')} ${G.players[G.turn].name}…`;
     }
     // Bot trigger before return!
     if(isBotDriver()&&isBotTurn()&&G.winner<0) scheduleBotTurn();
@@ -1309,15 +1586,15 @@ function updateUI(){
 
 function renderActions(){
   const p=G.players[G.turn];
-  document.getElementById('tlabel').innerHTML=`<span style="color:${p.color}">●</span> <b>${p.name}</b> – du bist dran!`;
+  document.getElementById('tlabel').innerHTML=`<span style="color:${p.color}">●</span> <b>${p.name}</b> – ${t('you_are_up')}`;
   const ab=document.getElementById('abtns'),dd=document.getElementById('ddisp');
   if(G.phase==='done'){ab.innerHTML=`<button class="bbtn blue" onclick="onNextTurn()">${t('next_player')}</button>`;return;}
-  if(G.phase==='start_roll'){dd.textContent='🎲';ab.innerHTML=`<button class="bbtn purple dice" onclick="onStartRoll()">🎲 Würfeln – brauche eine 6!<br><small style="opacity:.7;font-size:.82em">${G.rollsLeft} Versuch${G.rollsLeft===1?'':'e'}</small></button>`;return;}
-  if(G.phase==='schranken'){dd.textContent='🎲';ab.innerHTML=`<div class="msg">⚡ Schrankenfeld! 1=zurück, 2-6=vorwärts</div><button class="bbtn orange dice" onclick="onSchrankenRoll()">🎲 Würfeln!</button>`;return;}
+  if(G.phase==='start_roll'){dd.textContent='🎲';ab.innerHTML=`<button class="bbtn purple dice" onclick="onStartRoll()">${t('need_six')}<br><small style="opacity:.7;font-size:.82em">${G.rollsLeft} ${G.rollsLeft===1?t('tries'):t('tries_pl')}</small></button>`;return;}
+  if(G.phase==='schranken'){dd.textContent='🎲';ab.innerHTML=`<div class="msg">${t('schranke_rule')}</div><button class="bbtn orange dice" onclick="onSchrankenRoll()">${t('roll_dice')}</button>`;return;}
   if(G.phase==='roll'){
-    if(p.pos===34){dd.textContent='🏆';ab.innerHTML=`<div class="msg">🏆 Zielfeld! Würfle zum Sieg!</div><button class="bbtn green dice" onclick="onWinRoll()">🎲 SIEGEN!</button>`;return;}
+    if(p.pos===34){dd.textContent='🏆';ab.innerHTML=`<div class="msg">${t('goal_field')}</div><button class="bbtn green dice" onclick="onWinRoll()">${t('win_roll')}</button>`;return;}
     dd.textContent='🎲';ab.innerHTML=`<button class="bbtn purple dice" onclick="onRoll()">${t('roll_dice')}</button>`;return;}
-  if(G.phase==='becher'){dd.textContent='🎲';const ex=p.pos===33?'(2→Ziel, 1→B1, andere→warten)':'(2,4,6 = +1 vor)';ab.innerHTML=`<div class="msg">🏺 Becherfeld! ${ex}</div><button class="bbtn orange dice" onclick="onBecherRoll()">🎲 Würfeln</button>`;return;}
+  if(G.phase==='becher'){dd.textContent='🎲';const ex=p.pos===33?t('becher_rule_b5'):t('becher_rule');ab.innerHTML=`<div class="msg">${t('becher_field')} ${ex}</div><button class="bbtn orange dice" onclick="onBecherRoll()">${t('roll_becher')}</button>`;return;}
   if(G.phase==='effect'&&G.pending){
     const pen=G.pending;
     if(pen.type==='shortcut_choose'){
@@ -1365,10 +1642,13 @@ function renderActions(){
 }
 
 function showWin(){
-  document.getElementById('wmsg').textContent=`${G.players[G.winner].name} hat gewonnen! 🎉`;
+  stopGameTimer();
+  document.getElementById('wmsg').textContent=`${G.players[G.winner].name} ${t('win_msg')}`;
   renderWinActions();
   document.getElementById('win-screen').classList.add('show');
   vibe([100,50,100,50,200]);
+  // Show stats automatically after 1.5 seconds
+  setTimeout(()=>showStats(),1500);
 }
 
 function renderWinActions(){
@@ -1391,18 +1671,18 @@ function renderWinActions(){
 
 // ── HANDLERS ────────────────────────────────────────────────
 function disableBtn(){document.querySelectorAll('#abtns button').forEach(b=>b.disabled=true);}
-function onStartRoll(){disableBtn();const r=d6();animDice(r,700,v=>{const p=G.players[G.turn];if(v===6){const from=p.pos;p.pos=0;startMoveAnim(from,0,G.turn);clearSchranke(G.turn);addLog(`🎉 ${p.name} würfelt 6→Schrankenfeld!`);G.phase='schranken';if(G.turn===MY_IDX)notify('🎲',`${pn(p)} würfelt eine 6 → Schrankenfeld!`);}else{G.rollsLeft--;addLog(`${p.name} würfelt ${v}.`);if(G.rollsLeft<=0){addLog(`❌ Kein 6 in 3 Versuchen.`);endPhase();}}push();});}
-function onSchrankenRoll(){disableBtn();const r=d6();animDice(r,700,v=>{const p=G.players[G.turn];if(v===1){p.pos=-1;addLog(`${p.name} würfelt 1→Start!`);endPhase();notify('↩',`${pn(p)} würfelt 1 → zurück auf den Startteller!`);}else{const np=moveTo(G.turn,v);addLog(`${p.name} würfelt ${v}→${fn(np)}`);afterMove(G.turn);}push();});}
-function onRoll(){disableBtn();const r=d6();animDice(r,700,v=>{const p=G.players[G.turn];if(p.pos>=29&&p.pos<=33){G.phase='becher';handleBecher(v);return;}const np=moveTo(G.turn,p.pos+v);addLog(`${p.name} würfelt ${v}→${fn(np)}${v===6?' 🎲 Nochmal!':''}`);if(v===6&&G.phase!=='effect'&&G.winner<0){afterMove(G.turn);if(G.phase!=='effect'){G.phase='roll';addLog(`🎲 ${p.name} nochmal würfeln!`);notify('🎲',`${pn(p)} würfelt eine 6 – nochmal würfeln!`);}}else{afterMove(G.turn);}push();});}
+function onStartRoll(){disableBtn();const r=d6();animDice(r,700,v=>{const p=G.players[G.turn];if(v===6){const from=p.pos;p.pos=0;startMoveAnim(from,0,G.turn);clearSchranke(G.turn);addLog(`🎉 ${p.name} würfelt 6→Schrankenfeld!`);G.phase='schranken';if(G.turn===MY_IDX)notify('🎲',`${pn(p)} ${t('n_six_schranke')}`);}else{G.rollsLeft--;addLog(`${p.name} würfelt ${v}.`);if(G.rollsLeft<=0){addLog(`❌ Kein 6 in 3 Versuchen.`);endPhase();}}push();});}
+function onSchrankenRoll(){disableBtn();const r=d6();animDice(r,700,v=>{const p=G.players[G.turn];if(v===1){p.pos=-1;addLog(`${p.name} würfelt 1→Start!`);endPhase();notify('↩',`${pn(p)} ${t('n_back_start')}`);}else{const np=moveTo(G.turn,v);addLog(`${p.name} würfelt ${v}→${fn(np)}`);afterMove(G.turn);}push();});}
+function onRoll(){disableBtn();const r=d6();animDice(r,700,v=>{const p=G.players[G.turn];if(p.pos>=29&&p.pos<=33){G.phase='becher';handleBecher(v);return;}const np=moveTo(G.turn,p.pos+v);addLog(`${p.name} würfelt ${v}→${fn(np)}${v===6?' 🎲 Nochmal!':''}`);if(v===6&&G.phase!=='effect'&&G.winner<0){if(G.players[G.turn]?.stats)G.players[G.turn].stats.sixes++;afterMove(G.turn);if(G.phase!=='effect'){G.phase='roll';addLog(`🎲 ${p.name} nochmal würfeln!`);notify('🎲',`${pn(p)} ${t('n_six_again')}`);}}else{afterMove(G.turn);}push();});}
 function onBecherRoll(){disableBtn();const r=d6();animDice(r,700,v=>handleBecher(v));}
-function handleBecher(v){const p=G.players[G.turn];if(p.pos===33){if(v===2){const hfp=p.pos;p.pos=34;startMoveAnim(hfp,34,G.turn);kick(G.turn,34);addLog(`${p.name} würfelt 2→Ziel🏆`);notify('🏆',`${pn(p)} würfelt eine 2 → Zielfeld! Noch 1 Wurf zum Sieg!`);}else if(v===1){const hfp2=p.pos;p.pos=29;startMoveAnim(hfp2,29,G.turn);kick(G.turn,29);addLog(`${p.name} würfelt 1→B1!`);notify('😬',`${pn(p)} würfelt eine 1 auf B5 → zurück auf B1!`);}else{addLog(`${p.name} würfelt ${v}→wartet.`);notify('⏳',`${pn(p)} würfelt ${v} auf B5 – nur eine 2 bringt weiter!`);}}else{if(v%2===0){const np=Math.min(34,p.pos+1);const hfp3=p.pos;p.pos=np;startMoveAnim(hfp3,np,G.turn);kick(G.turn,np);addLog(`${p.name} würfelt ${v}→${fn(np)}`);}else addLog(`${p.name} würfelt ${v}→bleibt.`);}endPhase();push();}
-function onWinRoll(){disableBtn();const r=d6();animDice(r,500,v=>{addLog(`🏆 ${G.players[G.turn].name} würfelt ${v}→SIEG!`);notify('🏆',`🎉 ${pn(G.players[G.turn])} hat gewonnen!`);G.winner=G.turn;G.phase='done';push();});}
-function onSC(sc,dest){const p=G.players[G.turn];if(sc){const s=dest-10;const np=s>=5?22:10+s;p.pos=np;if(np===22)kick(G.turn,22);addLog(`✂ ${p.name} Abkürzung→${fn(np)}`);notify('✂',`${pn(p)} nimmt die Abkürzung → ${fn(np)}!`);}else{p.pos=dest;kick(G.turn,dest);addLog(`🛤 ${p.name} regulär→${fn(dest)}`);notify('🛤',`${pn(p)} nimmt den regulären Weg → ${fn(dest)}`);}G.pending=null;afterMove(G.turn);push();}
-function onTausch(di){const a=G.players[G.turn],b=G.players[di];const t=a.pos;a.pos=b.pos;b.pos=t;addLog(`🔄 ${a.name}↔${b.name}`);notify('🔄',`${pn(a)} (→${fn(b.pos)}) und ${pn(b)} (→${fn(a.pos)}) tauschen die Positionen!`);G.pending=null;endPhase();push();}
+function handleBecher(v){const p=G.players[G.turn];if(p.pos===33){if(v===2){const hfp=p.pos;p.pos=34;startMoveAnim(hfp,34,G.turn);kick(G.turn,34);addLog(`${p.name} würfelt 2→Ziel🏆`);notify('🏆',`${pn(p)} ${t('n_becher2goal')}`);}else if(v===1){const hfp2=p.pos;p.pos=29;startMoveAnim(hfp2,29,G.turn);kick(G.turn,29);addLog(`${p.name} würfelt 1→B1!`);notify('😬',`${pn(p)} ${t('n_becher1back')}`);}else{addLog(`${p.name} würfelt ${v}→wartet.`);notify('⏳',`${pn(p)} ${t('n_becher_wait')}`);}}else{if(v%2===0){const np=Math.min(34,p.pos+1);const hfp3=p.pos;p.pos=np;startMoveAnim(hfp3,np,G.turn);kick(G.turn,np);addLog(`${p.name} würfelt ${v}→${fn(np)}`);}else addLog(`${p.name} würfelt ${v}→bleibt.`);}endPhase();push();}
+function onWinRoll(){disableBtn();const r=d6();animDice(r,500,v=>{addLog(`🏆 ${G.players[G.turn].name} würfelt ${v}→SIEG!`);notify('🏆',`🎉 ${pn(G.players[G.turn])} ${t('win_msg')}`);G.winner=G.turn;G.phase='done';push();});}
+function onSC(sc,dest){const p=G.players[G.turn];if(sc){const s=dest-10;const np=s>=5?22:10+s;p.pos=np;if(np===22)kick(G.turn,22);addLog(`✂ ${p.name} Abkürzung→${fn(np)}`);notify('✂',`${pn(p)} ${t('n_shortcut_took')} ${fn(np)}!`);}else{p.pos=dest;kick(G.turn,dest);addLog(`🛤 ${p.name} regulär→${fn(dest)}`);notify('🛤',`${pn(p)} ${t('n_regular_took')} ${fn(dest)}`);}G.pending=null;afterMove(G.turn);push();}
+function onTausch(di){const a=G.players[G.turn],b=G.players[di];const t=a.pos;a.pos=b.pos;b.pos=t;if(a.stats)a.stats.tausch++;addLog(`🔄 ${a.name}↔${b.name}`);notify('🔄',`${pn(a)} ↔ ${pn(b)} ${t('n_tausch_done')}`);G.pending=null;endPhase();push();}
 function onHC(di){
   G.pending={type:'heraus_roll',defender:di};
   const att=G.players[G.turn], def=G.players[di];
-  notify('⚔',`${pn(att)} fordert ${pn(def)} zum Duell heraus!`);
+  notify('⚔',`${pn(att)} ${t('n_duel_challenge')}`);
   push();
 }
 function onHD(){
@@ -1411,7 +1691,7 @@ function onHD(){
   const defIdx=G.pending.defender;
   const r1=d6(),r2=d6();
   // Notify all players duel is starting
-  notify('⚔',`${pn(att)} ⚔ ${pn(def)} – Duell läuft...`);
+  notify('⚔',`${pn(att)} ⚔ ${pn(def)} ${t('n_duel_running')}`);
   push();
   // Local dice animation
   const dd=document.getElementById('ddisp');
@@ -1426,18 +1706,22 @@ function onHD(){
         if(r1>r2){
           if(att.pos<34)att.pos++;
           if(def.pos>0)def.pos--;
+          if(att.stats)att.stats.duelsWon++;
+          if(def.stats)def.stats.duelsLost++;
           addLog(`⚔ ${att.name}(${r1}) gewinnt das Duell!`);
-          notify('⚔',`${pn(att)} gewinnt das Duell gegen ${pn(def)}! (${r1}:${r2}) – ${pn(att)} +1 vor, ${pn(def)} -1 zurück.`);
+          notify('⚔',`${pn(att)} ${t('n_duel_wins')} ${pn(def)}! (${r1}:${r2}) – ${pn(att)} ${t('n_duel_plus1')} ${pn(def)} ${t('n_duel_minus1')}`);
           G.pending=null;endPhase();push();
         }else if(r2>r1){
           if(def.pos<34)def.pos++;
           if(att.pos>0)att.pos--;
+          if(def.stats)def.stats.duelsWon++;
+          if(att.stats)att.stats.duelsLost++;
           addLog(`⚔ ${def.name}(${r2}) gewinnt das Duell!`);
-          notify('⚔',`${pn(def)} gewinnt das Duell gegen ${pn(att)}! (${r2}:${r1}) – ${pn(def)} +1 vor, ${pn(att)} -1 zurück.`);
+          notify('⚔',`${pn(def)} ${t('n_duel_wins')} ${pn(att)}! (${r2}:${r1}) – ${pn(def)} ${t('n_duel_plus1')} ${pn(att)} ${t('n_duel_minus1')}`);
           G.pending=null;endPhase();push();
         }else{
           addLog(`⚔ Gleichstand (${r1}:${r2}) – Duell wird wiederholt!`);
-          notify('⚔',`🤝 Gleichstand im Duell (${r1}:${r2}) – nochmal würfeln!`);
+          notify('⚔',`🤝 ${t('n_duel_draw')} (${r1}:${r2}) ${t('n_duel_reroll')}`);
           // Keep pending intact → challenger sees ⚔ Duell button again
           push();
         }
@@ -1452,14 +1736,14 @@ function onQuit(){
   if(!confirm(`Wirklich aufgeben, ${p.name}? Du wirst aus dem Spiel entfernt.`))return;
   p.quit=true;
   addLog(`🏳 ${p.name} hat aufgegeben.`);
-  notify('🏳',`${pn(p)} hat aufgegeben und scheidet aus!`);
+  notify('🏳',`${pn(p)} ${t('n_quit')}`);
   // Check if only 1 active player remains
   const active=G.players.filter(pl=>!pl.quit);
   if(active.length===1){
     G.winner=G.players.indexOf(active[0]);
     G.phase='done';
     addLog(`🏆 ${active[0].name} gewinnt – alle anderen haben aufgegeben!`);
-    notify('🏆',`🎉 ${pn(active[0])} gewinnt – alle anderen haben aufgegeben!`);
+    notify('🏆',`🎉 ${pn(active[0])} ${t('n_all_quit_win')}`);
     push();return;
   }
   if(active.length===0){push();return;}
@@ -1474,7 +1758,7 @@ const SSP_EMOJI={'stein':'🪨','schere':'✂️','papier':'📄'};
 function onSSPChoose(di){
   G.pending={type:'ssp_pick',defender:di,chalPick:null,defPick:null};
   const att=G.players[G.turn],def=G.players[di];
-  notify('✂️',`${pn(att)} fordert ${pn(def)} beim Stein-Schere-Papier heraus!`);
+  notify('✂️',`${pn(att)} ${t('n_ssp_challenge')}`);
   push();
 }
 
@@ -1495,7 +1779,7 @@ function resolveSSP(){
   // First: reveal both picks to all players via Firebase
   G.pending={type:'ssp_reveal',defender:pen.defender,chalPick:cp,defPick:dp};
   // Show reveal banner to all
-  notify('✂️',`${pn(att)} wählt ${ce} – ${pn(def)} wählt ${de}`);
+  notify('✂️',`${pn(att)} ${t('n_ssp_reveal')} ${ce} ${t('n_ssp_vs')} ${pn(def)} ${t('n_ssp_reveal')} ${de}`);
   push();
   // After 2 seconds, execute result (only challenger's device)
   setTimeout(()=>{
@@ -1503,11 +1787,12 @@ function resolveSSP(){
     if(SSP_BEATS[cp]===dp){
       if(att.pos>=0&&att.pos<34)att.pos=Math.min(34,att.pos+1);
       addLog(`✂️ SSP: ${att.name}(${ce}) schlägt ${def.name}(${de}) → ${att.name} +1!`);
-      notify('✂️',`${pn(att)} (${ce}) schlägt ${pn(def)} (${de})! ${pn(att)} rückt 1 Feld vor!`);
+      notify('✂️',`${pn(att)} (${ce}) ${t('n_ssp_win_chal')} ${pn(def)} (${de})! ${pn(att)} ${t('n_ssp_win_plus1')}`);
       G.pending=null;endPhase();push();
     } else if(SSP_BEATS[dp]===cp){
+      if(def.stats)def.stats.sspWon++;if(att.stats)att.stats.sspLost++;
       addLog(`✂️ SSP: ${def.name}(${de}) schlägt ${att.name}(${ce}) → alle anderen +2!`);
-      notify('✂️',`${pn(def)} (${de}) schlägt ${pn(att)} (${ce})! Alle anderen rücken 2 Felder vor!`);
+      notify('✂️',`${pn(def)} (${de}) ${t('n_ssp_win_def')} ${pn(att)} (${ce})! ${t('n_ssp_all_plus2')}`);
       G.players.forEach((p,i)=>{
         if(i===G.turn||p.quit||p.pos<0||p.pos>=34)return;
         p.pos=Math.min(34,p.pos+2);
@@ -1515,7 +1800,7 @@ function resolveSSP(){
       G.pending=null;endPhase();push();
     } else {
       addLog(`✂️ SSP: Unentschieden (${ce} vs ${de}) – nochmal!`);
-      notify('✂️',`Unentschieden! ${pn(att)} (${ce}) vs ${pn(def)} (${de}) – nochmal wählen!`);
+      notify('✂️',`${t('n_ssp_draw')} ${pn(att)} (${ce}) vs ${pn(def)} (${de}) ${t('n_ssp_draw_retry')}`);
       G.pending={type:'ssp_pick',defender:pen.defender,chalPick:null,defPick:null};
       push();
     }
@@ -1557,7 +1842,7 @@ async function createGame(){
   }
 }
 function copyGL(u){if(navigator.clipboard)navigator.clipboard.writeText(u).then(()=>alert('✅ Kopiert!'));else alert(u);}
-function enterGame(){showScreen('s-game');listenGame(GAME_ID);listenChat(GAME_ID);sizeCV();updateUI();applyLang();}
+function enterGame(){showScreen('s-game');listenGame(GAME_ID);listenChat(GAME_ID);sizeCV();updateUI();applyLang();startGameTimer();startBotWatchdog();}
 function showJoinScreen(state){
   showScreen('s-join');const jb=document.getElementById('join-btns');jb.innerHTML='';
   state.players.forEach((p,i)=>{const d=document.createElement('div');d.className='jbtn';d.innerHTML=`<div class="jdot" style="background:${p.color}"></div><div class="jname">${p.name}</div>`;d.onclick=()=>{MY_IDX=i;localStorage.setItem('sg_p_'+GAME_ID,String(i));enterGame();};jb.appendChild(d);});
@@ -1567,7 +1852,7 @@ function showScreen(id){
   ['s-land','s-join','s-game'].forEach(s=>{const el=document.getElementById(s);if(!el)return;el.classList.remove('hidden');el.style.display=s===id?'flex':'none';});
   if(id==='s-game')document.getElementById('s-game').style.flexDirection='column';
 }
-function newGame(){
+function newGame(){stopGameTimer();hideStats();if(botWatchdog){clearInterval(botWatchdog);botWatchdog=null;}
   if(LISTENER){LISTENER();LISTENER=null;}
   if(CHAT_LISTENER){CHAT_LISTENER();CHAT_LISTENER=null;}
   unreadCount=0;lastMsgCount=0;
@@ -1638,6 +1923,26 @@ function strongestOpponent(){
 
 let botTimer=null;
 let botDefTimer=null;
+let botWatchdog=null;
+function startBotWatchdog(){
+  if(botWatchdog)return;
+  botWatchdog=setInterval(()=>{
+    if(!G||G.winner>=0){clearInterval(botWatchdog);botWatchdog=null;return;}
+    if(isBotDriver()&&isBotTurn()&&!botTimer){
+      console.warn('[Watchdog] Bot stuck, forcing trigger');
+      runBotTurn();
+    }
+    if(isBotDriver()&&G.pending?.type==='ssp_pick'&&!botDefTimer){
+      const defIdx=G.pending.defender;
+      if(isBot(defIdx)&&G.pending.defPick==null){
+        console.warn('[Watchdog] Bot defender stuck');
+        const syms=['stein','schere','papier'];
+        G.pending.defPick=syms[Math.floor(Math.random()*3)];
+        push();
+      }
+    }
+  },3000);
+}
 function scheduleBotDefenderPick(){
   if(botDefTimer)return;
   botDefTimer=setTimeout(()=>{
@@ -1868,6 +2173,132 @@ document.addEventListener('click',e=>{
   if(m&&m.style.display!=='none'&&!m.contains(e.target)&&!e.target.closest('.icon-btn[onclick*=LangMenu]'))
     hideLangMenu();
 });
+
+// ── GAME TIMER ──────────────────────────────────────────────
+let timerInterval=null;
+function startGameTimer(){
+  if(timerInterval)clearInterval(timerInterval);
+  timerInterval=setInterval(updateGameTimer,1000);
+  updateGameTimer();
+}
+function stopGameTimer(){
+  if(timerInterval){clearInterval(timerInterval);timerInterval=null;}
+}
+function updateGameTimer(){
+  const el=document.getElementById('game-timer');
+  if(!el||!G||!G.startedAt)return;
+  const secs=Math.floor((Date.now()-G.startedAt)/1000);
+  const m=Math.floor(secs/60),s=secs%60;
+  el.textContent=`⏱ ${m}:${s.toString().padStart(2,'0')}`;
+  el.classList.remove('hidden');
+}
+function formatDuration(ms){
+  const secs=Math.floor(ms/1000);
+  const m=Math.floor(secs/60),s=secs%60;
+  return `${m}:${s.toString().padStart(2,'0')}`;
+}
+
+// ── STATS SCREEN ─────────────────────────────────────────────
+function showStats(){
+  if(!G)return;
+  const screen=document.getElementById('stats-screen');
+  if(!screen)return;
+
+  // Title
+  const titleEl=document.getElementById('stats-title');
+  if(titleEl)titleEl.textContent=t('stats_title');
+  const closeBtn=document.getElementById('stats-close-btn');
+  if(closeBtn)closeBtn.textContent=t('rules_ok');
+
+  // Duration
+  const dur=G.startedAt?formatDuration(Date.now()-G.startedAt):'--:--';
+  const timeEl=document.getElementById('stats-time');
+  if(timeEl)timeEl.innerHTML=`⏱ ${t('stats_duration')}: <b>${dur}</b>`;
+
+  // Build stat rows
+  const rows=document.getElementById('stats-rows');
+  if(!rows)return;
+  const ps=G.players;
+  const stats=[];
+
+  function best(fn,minVal=1){
+    let bVal=0,bIdx=-1;
+    ps.forEach((p,i)=>{const v=fn(p,i);if(v>bVal){bVal=v;bIdx=i;}});
+    if(bIdx<0||bVal<minVal)return null;
+    return{p:ps[bIdx],val:bVal};
+  }
+
+  const statDefs=[
+    {key:'stats_most_kicked', fn:p=>p.stats?.kicked||0},
+    {key:'stats_most_got_kicked', fn:p=>p.stats?.gotKicked||0},
+    {key:'stats_duel_king', fn:p=>p.stats?.duelsWon||0},
+    {key:'stats_duel_loser', fn:p=>p.stats?.duelsLost||0},
+    {key:'stats_swap_master', fn:p=>p.stats?.tausch||0},
+    {key:'stats_ssp_king', fn:p=>p.stats?.sspWon||0},
+    {key:'stats_six_king', fn:p=>p.stats?.sixes||0},
+  ];
+
+  rows.innerHTML=statDefs.map(def=>{
+    const res=best(def.fn);
+    if(!res)return`<div class="stat-row"><div class="stat-body"><div class="stat-label">${t(def.key)}</div><div class="stat-value" style="color:#6b7280">${t('stats_no_data')}</div></div></div>`;
+    return`<div class="stat-row">
+      <div class="stat-icon"><div style="width:12px;height:12px;border-radius:50%;background:${res.p.color};display:inline-block"></div></div>
+      <div class="stat-body">
+        <div class="stat-label">${t(def.key)}</div>
+        <div class="stat-value"><span style="color:${res.p.color}">${res.p.name}</span> – ${res.val} ${t('stats_times')}</div>
+      </div>
+    </div>`;
+  }).join('');
+
+  screen.classList.add('show');
+}
+
+function hideStats(){
+  const screen=document.getElementById('stats-screen');
+  if(screen)screen.classList.remove('show');
+}
+
+// ── GAME TIMER ──────────────────────────────────────────────
+function showStats(){
+  if(!G)return;
+  const screen=document.getElementById('stats-screen');
+  if(!screen)return;
+  const titleEl=document.getElementById('stats-title');
+  if(titleEl)titleEl.textContent=t('stats_title');
+  const closeBtn=document.getElementById('stats-close-btn');
+  if(closeBtn)closeBtn.textContent=t('rules_ok');
+  const dur=G.startedAt?formatDuration(Date.now()-G.startedAt):'--:--';
+  const timeEl=document.getElementById('stats-time');
+  if(timeEl)timeEl.innerHTML='⏱ '+t('stats_duration')+': <b>'+dur+'</b>';
+  const rows=document.getElementById('stats-rows');
+  if(!rows)return;
+  const ps=G.players;
+  function best(fn){
+    let bVal=0,bIdx=-1;
+    ps.forEach((p,i)=>{const v=fn(p)||0;if(v>bVal){bVal=v;bIdx=i;}});
+    if(bIdx<0||bVal<1)return null;
+    return{p:ps[bIdx],val:bVal};
+  }
+  const statDefs=[
+    {key:'stats_most_kicked',fn:p=>p.stats&&p.stats.kicked},
+    {key:'stats_most_got_kicked',fn:p=>p.stats&&p.stats.gotKicked},
+    {key:'stats_duel_king',fn:p=>p.stats&&p.stats.duelsWon},
+    {key:'stats_duel_loser',fn:p=>p.stats&&p.stats.duelsLost},
+    {key:'stats_swap_master',fn:p=>p.stats&&p.stats.tausch},
+    {key:'stats_ssp_king',fn:p=>p.stats&&p.stats.sspWon},
+    {key:'stats_six_king',fn:p=>p.stats&&p.stats.sixes},
+  ];
+  rows.innerHTML=statDefs.map(def=>{
+    const res=best(def.fn);
+    if(!res)return '<div class="stat-row"><div class="stat-body"><div class="stat-label">'+t(def.key)+'</div><div class="stat-value" style="color:#6b7280">'+t('stats_no_data')+'</div></div></div>';
+    return '<div class="stat-row"><div class="stat-icon"><div style="width:12px;height:12px;border-radius:50%;background:'+res.p.color+';display:inline-block"></div></div><div class="stat-body"><div class="stat-label">'+t(def.key)+'</div><div class="stat-value"><span style="color:'+res.p.color+'">'+res.p.name+'</span> – '+res.val+' '+t('stats_times')+'</div></div></div>';
+  }).join('');
+  screen.classList.add('show');
+}
+function hideStats(){
+  const screen=document.getElementById('stats-screen');
+  if(screen)screen.classList.remove('show');
+}
 
 try{init();}catch(e){console.error('init crash:',e);showScreen('s-land');initLanding();}
 try{initDebugTap();}catch(e){}
