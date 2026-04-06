@@ -235,7 +235,10 @@ html,body{background:var(--bg);color:var(--tx);font-family:'Segoe UI',system-ui,
   <div class="logo-sub">Das selbst erfundene Familien-Brettspiel</div>
   <div class="card">
     <div class="flabel">Spielernamen eingeben (2–5 Spieler):</div>
-    <div id="pinputs"></div>
+    <div id="pinputs">
+      <div class="pi" id="pi1"><div class="pdot" style="background:#ef4444"></div><input type="text" placeholder="Spieler 1" maxlength="12"></div>
+      <div class="pi" id="pi2"><div class="pdot" style="background:#22c55e"></div><input type="text" placeholder="Spieler 2" maxlength="12"></div>
+    </div>
     <button id="btn-add-p" onclick="addPI()">＋ Spieler hinzufügen</button>
     <div class="divider"></div>
     <button class="bbtn purple" onclick="createGame()">🎮 Spiel erstellen</button>
@@ -325,12 +328,4 @@ html,body{background:var(--bg);color:var(--tx);font-family:'Segoe UI',system-ui,
   </div>
 
   <!-- Spieler teleportieren -->
-  <div class="dbg-section">
-    <h4>🚀 Spieler teleportieren</h4>
-    <div class="dbg-row">
-      <span class="dbg-label">Spieler:</span>
-      <select class="dbg-input" id="dbg-tp-player" style="max-width:140px"></select>
-    </div>
-    <div class="dbg-row">
-      <span class="dbg-label">Zu Feld:</span>
-      <input cla
+  <div class="dbg-secti
