@@ -216,26 +216,7 @@ html,body{background:var(--bg);color:var(--tx);font-family:'Segoe UI',system-ui,
 .dbg-scenario-btns{display:grid;grid-template-columns:1fr 1fr;gap:7px}
 
 #win-screen{position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:400;display:none;align-items:center;justify-content:center;padding:20px}
-/* Rematch */
-#rematch-screen{position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:450;display:none;align-items:center;justify-content:center;padding:20px;flex-direction:column;gap:12px}
-#rematch-screen.show{display:flex}
-.rm-card{background:#120924;border:1px solid var(--border);border-radius:16px;padding:22px;max-width:380px;width:100%;text-align:center}
-.rm-card h3{font-size:1.1em;color:#e9d5ff;margin-bottom:8px}
-.rm-card p{font-size:.85em;color:#9ca3af;margin-bottom:16px;line-height:1.5}
-.rm-btns{display:flex;gap:10px}
-.rm-btns button{flex:1;padding:13px;border:none;border-radius:11px;font-size:.95em;font-weight:700;cursor:pointer;transition:transform .1s}
-.rm-btns button:active{transform:scale(.97)}
-.rm-yes{background:linear-gradient(135deg,#22c55e,#15803d);color:#fff}
-.rm-no{background:rgba(239,68,68,.15);border:1.5px solid rgba(239,68,68,.3)!important;color:#fca5a5}
-.rm-timer{height:4px;background:rgba(255,255,255,.08);border-radius:2px;margin-top:12px;overflow:hidden}
-.rm-timer-bar{height:100%;background:linear-gradient(90deg,var(--acc),var(--acc2));border-radius:2px;transition:width linear}
-.rm-votes{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:10px 0}
-.rv{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.06);border-radius:20px;padding:5px 11px;font-size:.8em}
-.rv.yes{border:1px solid rgba(34,197,94,.4);color:#86efac}
-.rv.no{border:1px solid rgba(239,68,68,.3);color:#fca5a5}
-.rv.wait{border:1px solid rgba(255,255,255,.1);color:#9ca3af}
-.rm-input{background:rgba(255,255,255,.06);border:1.5px solid rgba(255,255,255,.12);border-radius:10px;padding:11px 14px;color:#e9d5ff;font-size:.95em;outline:none;width:100%;margin-bottom:10px}
-.rm-input:focus{border-color:var(--acc)}
+
 #win-screen.show{display:flex}
 .wcard{background:linear-gradient(135deg,#1e1040,#080318);border:2px solid #eab308;border-radius:20px;padding:36px;text-align:center;max-width:300px;width:100%;box-shadow:0 0 60px rgba(234,179,8,.4)}
 .wtrophy{font-size:4.5em;margin-bottom:10px}
@@ -386,14 +367,11 @@ html,body{background:var(--bg);color:var(--tx);font-family:'Segoe UI',system-ui,
   </div>
 </div>
 
-<!-- REMATCH SCREEN -->
-<div id="rematch-screen">
-  <div class="rm-card" id="rm-card-content"></div>
-</div>
+<!-- rematch screen removed -->
 
 <div id="win-screen"><div class="wcard"><div class="wtrophy">🏆</div><h2 id="wmsg"></h2>
-  <button class="bbtn purple" onclick="onStartRematch()" style="margin-top:8px">🔄 Nochmal spielen?</button>
-      <button class="bbtn green" onclick="newGame()" style="margin-top:6px">🏠 Hauptmenü</button></div></div>
+  <div id="win-actions" style="margin-top:8px"></div>
+</div></div>
 
 <div id="rules-modal" class="modal-bg hidden">
   <div class="modal-card">
@@ -669,7 +647,7 @@ function renderBoard(){
 let G=null,GAME_ID=null,MY_IDX=null,LISTENER=null;
 function newState(names){
   return{players:names.map((n,i)=>({name:n,color:PCOLS[i],pos:-1,kicked:false,wasKicked:false,visitedSchlB:false,kickedToSchranke:false,quit:false})),
-    turn:0,phase:'start_roll',rollsLeft:3,pending:null,winner:-1,notification:null,rematch:null,
+    turn:0,phase:'start_roll',rollsLeft:3,pending:null,winner:-1,notification:null,
     log:[`Spiel gestartet! ${names[0]} beginnt.`]};
 }
 function addLog(m){G.log.unshift(m);}
@@ -839,17 +817,7 @@ function listenGame(id){
     // Separate chatMsgs from game state
     const {chatMsgs,...gameState}=v;
     // Auto-rejoin after rematch: map old name to new player index
-    // Auto-rejoin after rematch: match by player name
-    if(G&&G.winner>=0&&gameState.winner<0&&MY_IDX!==null){
-      const myName=G.players[MY_IDX]?.name;
-      if(myName){
-        const newIdx=gameState.players.findIndex(p=>p.name===myName);
-        if(newIdx>=0&&newIdx!==MY_IDX){
-          MY_IDX=newIdx;
-          localStorage.setItem('sg_p_'+GAME_ID,String(newIdx));
-        }
-      }
-    }
+
     // Detect player movements for animation
     if(G&&G.players){
       gameState.players.forEach((pl,idx)=>{
@@ -860,7 +828,14 @@ function listenGame(id){
         }
       });
     }
-    G=gameState;updateUI();if(G.winner>=0)showWin();
+    const wasFinished=G&&G.winner>=0;
+    G=gameState;
+    updateUI();
+    if(G.winner>=0){showWin();}
+    else if(wasFinished&&G.winner<0){
+      // New game started by host → close win screen for everyone
+      document.getElementById('win-screen').classList.remove('show');
+    }
   });
   LISTENER=()=>ref.off('value',h);
 }
@@ -993,16 +968,6 @@ function animDice(result,ms,cb){
 function updateUI(){
   if(!G)return;
   renderBoard();
-  // Show synced notification to all players
-  // Rematch screen
-  const rmPhase=G.rematch?.phase;
-  if(rmPhase==='voting'||rmPhase==='setup'||rmPhase==='cancelled'){
-    if(rmPhase==='voting')checkAllVoted();
-    renderRematchScreen();
-  } else {
-    document.getElementById('rematch-screen').classList.remove('show');
-  }
-
   if(G.notification&&G.notification.ts>lastNotifTs){
     lastNotifTs=G.notification.ts;
     showInfoBanner(G.notification.icon, G.notification.text);
@@ -1012,7 +977,7 @@ function updateUI(){
     const qStyle=p.quit?'opacity:.35;filter:grayscale(1);':'';
     return`<div class="chip${isActive?' active':''}${isMe?' me':''}" style="${qStyle}">
       <div class="cdot" style="background:${p.color}"></div>
-      <div><div class="cname">${p.name}${isMe?' 👤':''}${G.winner===i?' 🏆':''}${p.quit?' 🏳':''}</div>
+      <div><div class="cname">${p.name}${isMe?' 👤':''}${G.winner===i?' 🏆':''}${p.quit?' 🏳':''}${isBot(i)?' 🤖':''}</div>
       <div class="cpos">${p.quit?'Aufgegeben':fn(p.pos)}</div></div></div>`;
   }).join('');
   // Show/hide quit button
@@ -1039,6 +1004,10 @@ function updateUI(){
     return;
   }
   if(isMyTurn)renderActions();
+  // Bot trigger – only Spieler 1 drives bots
+  if(isBotDriver()&&isBotTurn()&&G.winner<0){
+    scheduleBotTurn();
+  }
 }
 
 function renderActions(){
@@ -1077,8 +1046,27 @@ function renderActions(){
 
 function showWin(){
   document.getElementById('wmsg').textContent=`${G.players[G.winner].name} hat gewonnen! 🎉`;
+  renderWinActions();
   document.getElementById('win-screen').classList.add('show');
   vibe([100,50,100,50,200]);
+}
+
+function renderWinActions(){
+  const el=document.getElementById('win-actions');
+  if(!el)return;
+  // Find active player 1 (index 0, or next non-quit if 0 quit)
+  const host=G.players.find((p,i)=>!p.quit)||G.players[0];
+  const hostIdx=G.players.indexOf(host);
+  const isHost=MY_IDX===hostIdx;
+  if(isHost){
+    el.innerHTML=`
+      <button class="bbtn purple" onclick="onStartRematch()">🔄 Nochmal spielen?</button>
+      <button class="bbtn green" onclick="newGame()" style="margin-top:6px">🏠 Hauptmenü</button>`;
+  } else {
+    el.innerHTML=`
+      <div style="color:#9ca3af;font-size:.85em;padding:10px 0">⏳ Warte auf ${host.name}…</div>
+      <button class="bbtn green" onclick="newGame()" style="margin-top:6px">🏠 Hauptmenü</button>`;
+  }
 }
 
 // ── HANDLERS ────────────────────────────────────────────────
@@ -1200,164 +1188,84 @@ async function init(){
   G=state;const stored=localStorage.getItem('sg_p_'+gid);
   if(stored!==null){MY_IDX=parseInt(stored);enterGame();}else showJoinScreen(state);
 }
-// ── REMATCH SYSTEM ─────────────────────────────────────────
-// ── REMATCH SYSTEM (simplified) ────────────────────────────
-// G.rematch = { phase:'voting'|'setup'|'cancelled', votes:{idx:true/false},
-//               yesPlayers:[{name,color,origIdx}], hostIdx:N, nameMap:{name:newIdx} }
-
 function onStartRematch(){
-  if(!G||MY_IDX===null||G.rematch)return;
-  G.rematch={phase:'voting',votes:{}};
-  document.getElementById('win-screen').classList.remove('show');
-  push();
-}
-
-function onVoteRematch(yes){
-  if(!G||!G.rematch||G.rematch.phase!=='voting'||MY_IDX===null)return;
-  if(G.rematch.votes[MY_IDX]!==undefined)return; // already voted
-  G.rematch.votes[MY_IDX]=yes;
-  addLog(`${G.players[MY_IDX].name}: ${yes?'Ja 🎮':'Nein 👋'}`);
-  checkAllVoted();
-  push();
-}
-
-function checkAllVoted(){
-  if(!G||!G.rematch||G.rematch.phase!=='voting')return;
-  const activePlayers=G.players.filter(p=>!p.quit);
-  const total=activePlayers.length;
-  const voted=activePlayers.filter((p,i)=>G.rematch.votes[G.players.indexOf(p)]!==undefined).length;
-  if(voted<total)return;
-  const yesIdxs=G.players.map((_,i)=>i).filter(i=>!G.players[i].quit&&G.rematch.votes[i]===true);
-  if(yesIdxs.length<2){G.rematch={phase:'cancelled'};return;}
-  // Host = winner, or first yes voter if winner voted no
-  let hostIdx=G.winner>=0&&yesIdxs.includes(G.winner)?G.winner:yesIdxs[0];
-  const yesPlayers=yesIdxs.map(i=>({name:G.players[i].name,color:G.players[i].color,origIdx:i}));
-  G.rematch={phase:'setup',votes:G.rematch.votes,yesPlayers,hostIdx};
-}
-
-// Called by host to start new game
-function rsStart(){
-  if(!G||!G.rematch||G.rematch.phase!=='setup')return;
-  const inputs=[...document.querySelectorAll('#rs-inputs .rs-inp')];
-  const names=inputs.map((el,i)=>el.value.trim()||`Spieler ${i+1}`);
-  if(names.length<2){alert('Mindestens 2 Spieler!');return;}
-  const myName=MY_IDX!==null?G.players[MY_IDX]?.name:null;
-  // Build nameMap for auto-rejoin
-  const nameMap={};
-  names.forEach((n,i)=>nameMap[n]=i);
-  // Create new game state
-  const yp=G.rematch.yesPlayers||[];
-  const ns=newState(names);
-  // Restore colors for returning players
-  names.forEach((n,i)=>{const orig=yp.find(p=>p.name===n);if(orig)ns.players[i].color=orig.color;});
-  ns.rematch=null; // clear rematch state for new game
+  if(!G||!GAME_ID)return;
+  // Reuse same Game-ID → all players with old link get update automatically
+  const players=G.players.map(p=>({name:p.name,color:p.color}));
+  const ns=newState(players.map(p=>p.name));
+  players.forEach((p,i)=>{ns.players[i].color=p.color;});
   G=ns;
-  // Update MY_IDX for host
-  if(myName&&nameMap[myName]!==undefined){
-    MY_IDX=nameMap[myName];
-    localStorage.setItem('sg_p_'+GAME_ID,String(MY_IDX));
-  }
-  document.getElementById('rematch-screen').classList.remove('show');
-  push();
-  addLog(`Neues Spiel! ${G.players[0].name} beginnt.`);
-  push();
-}
-
-let rsExtraCount=0;
-function rsAddPlayer(){
-  const cont=document.getElementById('rs-inputs');
-  if(!cont||cont.children.length>=5)return;
-  rsExtraCount++;
-  const idx=cont.children.length;
-  const color=PCOLS[idx%PCOLS.length];
-  const div=document.createElement('div');
-  div.style.cssText='display:flex;align-items:center;gap:10px;margin-bottom:10px';
-  div.innerHTML=`<div style="width:14px;height:14px;border-radius:50%;background:${color};flex-shrink:0"></div>
-    <input class="rs-inp" type="text" placeholder="Neuer Spieler" maxlength="12"
-      style="flex:1;background:rgba(255,255,255,.06);border:1.5px solid rgba(255,255,255,.12);border-radius:10px;padding:11px 14px;color:#e9d5ff;font-size:.95em;outline:none">`;
-  cont.appendChild(div);
-  const addBtn=document.getElementById('rs-add-btn');
-  if(addBtn&&cont.children.length>=5)addBtn.style.display='none';
-}
-
-function renderRematchScreen(){
-  if(!G||!G.rematch)return;
-  const rm=G.rematch;
-  const screen=document.getElementById('rematch-screen');
-  const card=document.getElementById('rm-card-content');
-  if(!screen||!card)return;
-
-  if(rm.phase==='cancelled'){
-    screen.classList.remove('show');
-    card.innerHTML=`<h3>❌ Zu wenige Spieler</h3>
-      <p style="color:#9ca3af;font-size:.85em;margin-bottom:16px">Nicht genug Spieler wollen weiterspielen.</p>
-      <button class="bbtn green" onclick="newGame()">🏠 Hauptmenü</button>`;
-    screen.classList.add('show');
-    return;
-  }
-
-  screen.classList.add('show');
   document.getElementById('win-screen').classList.remove('show');
+  // Reset MY_IDX per player based on localStorage
+  const stored=localStorage.getItem('sg_p_'+GAME_ID);
+  if(stored!==null)MY_IDX=parseInt(stored);
+  push();
+  updateUI();
+}
 
-  // ── VOTING PHASE ──
-  if(rm.phase==='voting'){
-    const rows=G.players.map((p,i)=>{
-      if(p.quit)return'';
-      const v=rm.votes[i];
-      const badge=v===true
-        ?`<span style="color:#22c55e;font-weight:700">✓ Ja</span>`
-        :v===false
-        ?`<span style="color:#ef4444;font-weight:700">✗ Nein</span>`
-        :`<span style="color:#6b7280">⏳</span>`;
-      const btns=(i===MY_IDX&&v===undefined)
-        ?`<button onclick="onVoteRematch(true)" style="background:rgba(34,197,94,.2);border:1.5px solid rgba(34,197,94,.4);border-radius:9px;color:#86efac;padding:7px 14px;cursor:pointer;font-weight:700;margin-left:auto">✓ Ja</button>
-          <button onclick="onVoteRematch(false)" style="background:rgba(239,68,68,.12);border:1.5px solid rgba(239,68,68,.3);border-radius:9px;color:#fca5a5;padding:7px 14px;cursor:pointer;font-weight:700">✗ Nein</button>`
-        :`<span style="margin-left:auto">${badge}</span>`;
-      return`<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.07)">
-        <div style="width:12px;height:12px;border-radius:50%;background:${p.color};flex-shrink:0"></div>
-        <span style="font-size:.9em;font-weight:600">${p.name}</span>
-        ${btns}
-      </div>`;
-    }).join('');
-    card.innerHTML=`<h3 style="margin-bottom:14px">🔄 Nochmal spielen?</h3>${rows}`;
+// ── BOT SYSTEM ──────────────────────────────────────────────
+function isBot(idx){
+  if(!G||!G.players[idx])return false;
+  return /^bot/i.test(G.players[idx].name.trim());
+}
+function isBotTurn(){
+  return G&&G.winner<0&&isBot(G.turn);
+}
+// Only Spieler 1 (MY_IDX===0) drives all bots
+function isBotDriver(){return MY_IDX===0;}
+
+// Pick strongest opponent (highest pos), excluding self and quit players
+function strongestOpponent(){
+  let best=-1,bestPos=-99;
+  G.players.forEach((p,i)=>{
+    if(i===G.turn||p.quit)return;
+    if(p.pos>bestPos){bestPos=p.pos;best=i;}
+  });
+  return best;
+}
+
+let botTimer=null;
+function scheduleBotTurn(){
+  if(botTimer)return;
+  botTimer=setTimeout(()=>{botTimer=null;runBotTurn();},1000);
+}
+
+function runBotTurn(){
+  if(!G||!isBotTurn()||!isBotDriver())return;
+  const phase=G.phase;
+  const pen=G.pending;
+
+  if(phase==='done'){onNextTurn();return;}
+
+  if(phase==='start_roll'){onStartRoll();return;}
+  if(phase==='schranken'){onSchrankenRoll();return;}
+  if(phase==='roll'){
+    if(G.players[G.turn].pos===34){onWinRoll();}
+    else{onRoll();}
     return;
   }
+  if(phase==='becher'){onBecherRoll();return;}
 
-  // ── SETUP PHASE ──
-  if(rm.phase==='setup'){
-    const isHost=MY_IDX===rm.hostIdx;
-    if(isHost){
-      rsExtraCount=0;
-      const inputs=(rm.yesPlayers||[]).map((p,i)=>
-        `<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-          <div style="width:14px;height:14px;border-radius:50%;background:${p.color};flex-shrink:0"></div>
-          <input class="rs-inp" type="text" value="${p.name}" maxlength="12"
-            style="flex:1;background:rgba(255,255,255,.06);border:1.5px solid rgba(255,255,255,.12);border-radius:10px;padding:11px 14px;color:#e9d5ff;font-size:.95em;outline:none">
-        </div>`).join('');
-      card.innerHTML=`
-        <h3 style="margin-bottom:14px">🎮 Neues Spiel</h3>
-        <div id="rs-inputs">${inputs}</div>
-        <button id="rs-add-btn" onclick="rsAddPlayer()"
-          style="width:100%;background:rgba(255,255,255,.05);border:1.5px dashed rgba(255,255,255,.15);border-radius:10px;padding:11px;color:#9ca3af;cursor:pointer;font-size:.88em;margin-bottom:12px">
-          ＋ Spieler hinzufügen
-        </button>
-        <div style="height:1px;background:rgba(255,255,255,.08);margin-bottom:12px"></div>
-        <button onclick="rsStart()" class="bbtn purple">🎮 Spiel starten!</button>
-        <button onclick="newGame()" class="bbtn" style="margin-top:6px;background:rgba(255,255,255,.06)">🏠 Hauptmenü</button>`;
-    } else {
-      const host=rm.hostIdx!==undefined?G.players[rm.hostIdx]:null;
-      const myVote=MY_IDX!==null?rm.votes?.[MY_IDX]:undefined;
-      if(myVote===false){
-        // voted no → offer main menu
-        card.innerHTML=`<h3>👋 Tschüss!</h3>
-          <p style="color:#9ca3af;font-size:.85em;margin-bottom:16px">Du hast aufgehört. Das Spiel geht ohne dich weiter.</p>
-          <button class="bbtn green" onclick="newGame()">🏠 Hauptmenü</button>`;
-      } else {
-        card.innerHTML=`<h3>⏳ Warte auf ${host?.name||'Host'}…</h3>
-          <p style="color:#9ca3af;font-size:.85em">Das neue Spiel wird gleich gestartet.</p>`;
-      }
+  if(phase==='effect'&&pen){
+    if(pen.type==='shortcut_choose'){
+      // Random: 50/50 Abkürzung oder regulär
+      const sc=Math.random()<0.5;
+      onSC(sc,pen.intendedPos);
+      return;
     }
-    return;
+    if(pen.type==='tausch'){
+      const opp=strongestOpponent();
+      if(opp>=0)onTausch(opp);
+      else onSkip();
+      return;
+    }
+    if(pen.type==='heraus_choose'){
+      const opp=strongestOpponent();
+      if(opp>=0)onHC(opp);
+      else onSkip();
+      return;
+    }
+    if(pen.type==='heraus_roll'){onHD();return;}
   }
 }
 
