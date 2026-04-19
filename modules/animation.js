@@ -277,32 +277,49 @@ function moveAnimLoop(){
 }
 
 let _diceRolling=false;
-function animDice(result,ms,cb){
+
+function showDiceZone(rollerName){
+  const zone=document.getElementById('ddisp-zone');
+  const cap =document.getElementById('ddisp-caption');
+  if(!zone)return;
+  if(cap) cap.textContent = rollerName ? `${rollerName} würfelt…` : '';
+  zone.classList.add('active');
+}
+function hideDiceZone(delay=700){
+  setTimeout(()=>{
+    const zone=document.getElementById('ddisp-zone');
+    const cap =document.getElementById('ddisp-caption');
+    if(!zone)return;
+    zone.classList.remove('active');
+    if(cap) cap.textContent='';
+  },delay);
+}
+
+function animDice(result,ms,cb,rollerName){
   if(adminAutoPlay){cb(result);return;}
   vibe(30);SFX.diceRattle();
   _diceRolling=true;
   if(diceIV){clearInterval(diceIV);diceIV=null;}
+  showDiceZone(rollerName || (typeof G!=='undefined' && G.players && G.players[G.turn] && G.players[G.turn].name));
   const cube=initCube();
   let t=0;
   diceIV=setInterval(()=>{
     t+=55;
-    // Shuffle: random Drehung mit kurzer Transition
     _cubeRx+=28+Math.random()*32;
     _cubeRy+=35+Math.random()*38;
     setCubeRot(cube,_cubeRx,_cubeRy,'transform 0.07s ease');
     if(t>=ms){
       clearInterval(diceIV);diceIV=null;
-      // Landing: akkumulierte Rotation + Zielseite
       const[tx,ty]=CUBE_ROT[result];
       const finalX=Math.round(_cubeRx/360)*360+tx;
       const finalY=Math.round(_cubeRy/360)*360+ty;
       setCubeRot(cube,finalX,finalY,'transform .52s cubic-bezier(.18,.85,.28,1.05)');
       vibe([30,30,60]);SFX.diceHit();
       setTimeout(()=>{
-        // kurzer Glow-Burst bei Landung
         cube.classList.add('glow');
         setTimeout(()=>{if(cube)cube.classList.remove('glow');},260);
         _diceRolling=false;
+        hideDiceZone(650);
         cb(result);
       },540);
     }

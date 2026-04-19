@@ -72,7 +72,11 @@
   <div id="right-col">
   <div id="pbar"></div>
   <div id="action-area">
-  <div id="action-area">
+  <!-- Würfel-Zone: IMMER an dieser Position, fährt nur bei aktivem Wurf aus -->
+  <div id="ddisp-zone">
+    <div id="ddisp"></div>
+    <div id="ddisp-caption"></div>
+  </div>
   <div id="info-banner" onclick="hideInfoBanner()">
     <div class="ib-icon" id="ib-icon"></div>
     <div class="ib-text" id="ib-text"></div>
@@ -80,7 +84,6 @@
     <div class="ib-bar" id="ib-bar"></div>
   </div>
   <div id="waiting-box" class="hidden"><div class="spinner"></div><div id="waiting-msg">⏳ Warte…</div></div>
-  <div id="ddisp" style="text-align:center">🎲</div>
   <div id="abox"><div id="tlabel"></div><div id="abtns"></div></div>
   </div><!-- /action-area -->
   </div>
