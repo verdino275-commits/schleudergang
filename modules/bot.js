@@ -132,5 +132,29 @@ function runBotTurn(){
       // Wait for setTimeout in resolveSSP - do nothing
       return;
     }
+    if(pen.type==='takt_result'){
+      // Driver already scheduled endPhase via setTimeout in resolveTakt - do nothing
+      return;
+    }
+    if(pen.type==='takt_set'&&pen.challengerScore==null){
+      setTimeout(()=>{
+        if(!G||!G.pending||G.pending.type!=='takt_set') return;
+        const score=Math.floor(30+Math.random()*55);
+        submitTaktScoreAsBot(G.pending.challenger,score,'set');
+      },adminAutoPlay?50:800);
+      return;
+    }
   }
+}
+
+let _botTaktTimers={};
+function scheduleBotTaktResponse(botIdx){
+  if(_botTaktTimers[botIdx]) return;
+  _botTaktTimers[botIdx]=setTimeout(()=>{
+    delete _botTaktTimers[botIdx];
+    if(!G||!G.pending||G.pending.type!=='takt_challenge') return;
+    if((G.pending.responses||{})[botIdx]!=null) return;
+    const score=Math.floor(30+Math.random()*55);
+    submitTaktScoreAsBot(botIdx,score,'challenge');
+  },adminAutoPlay?50:600);
 }

@@ -74,6 +74,7 @@ const FC2={
   tausch: {bg:'#db2777',bd:'#9d174d',tx:'#fff',gl:'#fb7185'},
   ziel:   {bg:'#059669',bd:'#064e3b',tx:'#fff',gl:'#34d399'},
   ssp:    {bg:'#db2777',bd:'#9d174d',tx:'#fff',gl:'#fb7185'},
+  takt:   {bg:'#db2777',bd:'#9d174d',tx:'#fff',gl:'#fb7185'},
   becher: {bg:'#b45309',bd:'#92400e',tx:'#fde68a',gl:'#fbbf24'},
 };
 

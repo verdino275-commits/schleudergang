@@ -38,6 +38,7 @@ de: {
   r_arrow:'➡ Pfeilfeld: Automatisch 1 Feld weiter.',
   r_heraus:'⚔ Herausforderungsfeld: Gegner wählen — beide würfeln. Höher = 1 vor · Niedriger = 1 zurück · Gleichstand = nochmal.',
   r_tausch:'🔄 Tauschfeld: Gegner wählen, Positionen tauschen. Pflicht — kein Ablehnen!',
+  r_takt:'🎯 Taktfeld (F5): Stoppe die pendelnde Leiste so nah an der Mitte wie möglich. Alle Spieler auf F1+ spielen mit. Wer den Auslöser schlägt: +1 · Wer verliert: −1 · Auslöser: +1 pro Verlierer, −1 pro Gewinner.',
   r_schlA:'🔵 Schleuderfeld A (F10): Landungsziel der Schleuder — kein Nachteil.',
   r_schlB:'🔴 Schleuderfeld B (F22): Immer zurück auf F10!',
   r_kick:'💥 Rausschmiss: Auf besetztes Feld landen → Gegner fliegt aufs Schrankenfeld. Ist das besetzt → Startteller. Vom Schrankenfeld aus: normal würfeln, keine 6 nötig!',
@@ -55,7 +56,9 @@ de: {
   n_kicked:'fliegt raus → zurück aufs Schrankenfeld 💥',
   n_displaced:'wird vom Schrankenfeld verdrängt → Startteller ⬇',
   n_arrow_forward:'➡ Pfeilfeld — 1 Feld weiter', n_arrow:'➡ Pfeilfeld',
-  n_sling_back:'🎯 Schleuderfeld — zurück auf Feld 10',
+  n_takt_land:'🎯 Taktfeld — alle spielen mit!',
+  n_takt_result:'🎯 Taktfeld abgeschlossen',
+  n_sling_back:'💫 Schleuderfeld — zurück auf Feld 10',
   n_tausch_land:'🔄 Tauschfeld — wähle einen Gegner (Pflicht)',
   n_heraus_land:'⚔ Herausforderungsfeld — Zeit für ein Duell!',
   n_goal_next:'🏆 steht auf dem Zielfeld — noch 1 Wurf zum Sieg!',
@@ -108,6 +111,8 @@ de: {
   tut_5_body:'Pflicht! Wähle einen Mitspieler und tauscht sofort die Positionen. Nutze es strategisch!',
   tut_6_title:'Stein-Schere-Papier 🪨✂️📄',
   tut_6_body:'Wähle einen Gegner und spielt SSP gleichzeitig. Gewinner: +1 vor. Verlierer: alle anderen +2. Unentschieden = nochmal.',
+  tut_takt_title:'Taktfeld 🎯',
+  tut_takt_body:'Stoppe die pendelnde Leiste so nah an der Mitte wie möglich. Alle Mitspieler auf F1+ spielen dasselbe — wer den Auslöser schlägt bekommt +1, wer verliert −1. Der Auslöser erhält +1 für jeden den er schlägt, −1 für jeden der ihn schlägt.',
   tut_7_title:'Schleuderfeld 🔴',
   tut_7_body:'Wenn du auf Feld 22 landest, wirst du immer auf Feld 10 zurückgeschleudert – egal wie oft!',
   tut_8_title:'Becherzone 🏺',
@@ -149,6 +154,7 @@ it: {
   r_arrow:'➡ Campo freccia: Automaticamente 1 campo avanti.',
   r_heraus:'⚔ Campo sfida: Scegli avversario — entrambi lanciano. Più alto = 1 avanti · Più basso = 1 indietro · Parità = rilancia.',
   r_tausch:'🔄 Campo scambio: Scegli avversario, scambiate posizioni. Obbligatorio — non si rifiuta!',
+  r_takt:'🎯 Campo ritmo (F5): Ferma la barra oscillante il più vicino possibile al centro. Tutti i giocatori su F1+ partecipano. Chi supera il sfidante: +1 · Chi perde: −1 · Sfidante: +1 per ogni perdente, −1 per ogni vincitore.',
   r_schlA:'🔵 Campo fionda A (F10): Destinazione della fionda — nessuno svantaggio.',
   r_schlB:'🔴 Campo fionda B (F22): Sempre torna a F10!',
   r_kick:'💥 Eliminazione: Atterri su campo occupato → l\'avversario vola alla sbarra. Se occupata → piattino. Dalla sbarra: lancio normale, niente 6!',
@@ -165,7 +171,9 @@ it: {
   n_kicked:'viene sbattuto fuori → torna alla sbarra 💥',
   n_displaced:'viene spinto via dalla sbarra → piattino ⬇',
   n_arrow_forward:'➡ Campo freccia — avanti di 1', n_arrow:'➡ Campo freccia',
-  n_sling_back:'🎯 Campo fionda — torna al campo 10',
+  n_takt_land:'🎯 Campo ritmo — tutti partecipano!',
+  n_takt_result:'🎯 Campo ritmo completato',
+  n_sling_back:'💫 Campo fionda — torna al campo 10',
   n_tausch_land:'🔄 Campo scambio — scegli un giocatore (obbligatorio)',
   n_heraus_land:'⚔ Campo sfida — è tempo di duello!',
   n_goal_next:'🏆 è sul traguardo — ancora 1 lancio per vincere!',
@@ -258,6 +266,7 @@ en: {
   r_arrow:'➡ Arrow field: Automatically 1 space forward.',
   r_heraus:'⚔ Challenge field: Choose opponent — both roll. Higher = 1 forward · Lower = 1 back · Tie = reroll.',
   r_tausch:'🔄 Swap field: Choose opponent, swap positions. Mandatory — no refusal!',
+  r_takt:'🎯 Timing field (F5): Stop the oscillating bar as close to the center as possible. All players on F1+ participate. Beat the trigger player: +1 · Fail: −1 · Trigger player: +1 per loser, −1 per winner.',
   r_schlA:'🔵 Sling field A (F10): Sling destination — no disadvantage.',
   r_schlB:'🔴 Sling field B (F22): Always sends you back to F10!',
   r_kick:'💥 Kick-out: Land on an occupied field → opponent flies to the barrier. If that\'s occupied → start plate. From barrier: normal roll, no 6 needed!',
@@ -274,7 +283,9 @@ en: {
   n_kicked:'gets kicked out → back to barrier 💥',
   n_displaced:'is pushed off the barrier → start plate ⬇',
   n_arrow_forward:'➡ Arrow field — 1 space forward', n_arrow:'➡ Arrow field',
-  n_sling_back:'🎯 Sling field — back to field 10',
+  n_takt_land:'🎯 Timing field — everyone plays!',
+  n_takt_result:'🎯 Timing field resolved',
+  n_sling_back:'💫 Sling field — back to field 10',
   n_tausch_land:'🔄 Swap field — choose a player (mandatory)',
   n_heraus_land:'⚔ Challenge field — time for a duel!',
   n_goal_next:'🏆 stands on the goal field — 1 more roll to win!',
@@ -367,6 +378,7 @@ sk: {
   r_arrow:'➡ Šípkové pole: Automaticky 1 pole vpred.',
   r_heraus:'⚔ Výzva: Vyber súpera — obaja hodia. Vyššie = 1 vpred · Nižšie = 1 späť · Remíza = znova.',
   r_tausch:'🔄 Výmenné pole: Vyber súpera, vymeňte pozície. Povinné — nemožno odmietnuť!',
+  r_takt:'🎯 Rytmické pole (F5): Zastav pohyblivú lištu čo najbližšie k stredu. Všetci hráči na F1+ sa zúčastňujú. Kto porazí spúšťača: +1 · Kto prehrá: −1 · Spúšťač: +1 za každého porazeného, −1 za každého víťaza.',
   r_schlA:'🔵 Praková plocha A (F10): Cieľ praku — žiadna nevýhoda.',
   r_schlB:'🔴 Praková plocha B (F22): Vždy späť na F10!',
   r_kick:'💥 Vyhodenie: Ak pristaneš na obsadenom poli → súper letí na závoru. Ak je tam niekto → štart. Zo závory: hoď normálne, 6 netreba!',
@@ -383,7 +395,9 @@ sk: {
   n_kicked:'letí von → späť na závoru 💥',
   n_displaced:'je vytlačený zo závory → štart ⬇',
   n_arrow_forward:'➡ Šípkové pole — 1 pole vpred', n_arrow:'➡ Šípkové pole',
-  n_sling_back:'🎯 Praková plocha — späť na pole 10',
+  n_takt_land:'🎯 Rytmické pole — všetci hrajú!',
+  n_takt_result:'🎯 Rytmické pole vyriešené',
+  n_sling_back:'💫 Praková plocha — späť na pole 10',
   n_tausch_land:'🔄 Výmenné pole — vyber hráča (povinné)',
   n_heraus_land:'⚔ Výzva — čas na súboj!',
   n_goal_next:'🏆 stojí na cieli — ešte 1 hod na výhru!',
@@ -475,7 +489,7 @@ function applyLang(){
 function updateRules(){
   const modal=document.querySelector('.modal-card');
   if(!modal)return;
-  const ruleKeys=['r_players','r_enter','r_schranke','r_six','r_arrow','r_heraus','r_tausch','r_schlA','r_schlB','r_kick','r_becher_enter','r_becher','r_b5','r_ziel','r_ssp','r_bot','r_quit'];
+  const ruleKeys=['r_players','r_enter','r_schranke','r_six','r_arrow','r_takt','r_heraus','r_tausch','r_schlA','r_schlB','r_kick','r_becher_enter','r_becher','r_b5','r_ziel','r_ssp','r_bot','r_quit'];
   const rules=modal.querySelectorAll('.rule');
   rules.forEach((el,i)=>{ if(ruleKeys[i]) el.textContent=t(ruleKeys[i]); });
   const okBtn=modal.querySelector('.bbtn.purple');

@@ -119,10 +119,12 @@ function updateUI(){
   const isAnimating=!!(moveAnim||moveAnimQueue.length>0);
   const isSSPDefender=(G.pending?.type==='ssp_pick'||G.pending?.type==='ssp_reveal')&&(G.pending.defender===MY_IDX||(isBotDriver()&&isBot(G.pending.defender)))&&!myQuit;
   const isSSPReveal=G.pending?.type==='ssp_reveal';
+  const isTaktRespondent=G.pending?.type==='takt_challenge'&&MY_IDX!==null&&MY_IDX!==G.pending.challenger&&!myQuit&&(G.players[MY_IDX]?.pos||0)>=1&&G.pending.responses?.[MY_IDX]==null;
+  const hasBotTaktRespondent=isBotDriver()&&G.pending?.type==='takt_challenge'&&G.players.some((p,i)=>i!==G.pending.challenger&&isBot(i)&&!p.quit&&(p.pos||0)>=1&&G.pending.responses?.[i]==null);
   // Warte-Box anzeigen wenn: nicht mein Zug, oder Animation läuft (mein Zug aber noch animiert)
-  document.getElementById('waiting-box').classList.toggle('hidden',(isMyTurn&&!isAnimating)||G.phase==='done'||myQuit||isSSPDefender||isSSPReveal);
+  document.getElementById('waiting-box').classList.toggle('hidden',(isMyTurn&&!isAnimating)||G.phase==='done'||myQuit||isSSPDefender||isSSPReveal||isTaktRespondent);
   // Aktions-Box ausblenden während Animation läuft
-  document.getElementById('abox').classList.toggle('hidden',(!isMyTurn&&G.phase!=='done'&&!isSSPDefender&&!isSSPReveal)||myQuit||isAnimating);
+  document.getElementById('abox').classList.toggle('hidden',(!isMyTurn&&G.phase!=='done'&&!isSSPDefender&&!isSSPReveal&&!isTaktRespondent)||myQuit||isAnimating);
   if(isAnimating&&isMyTurn){
     document.getElementById('waiting-msg').textContent='⏳ …';
     return;
@@ -142,11 +144,17 @@ function updateUI(){
       document.getElementById('waiting-msg').innerHTML=`${ce2} vs ${de2} – Ergebnis folgt…`;
     }else if(pen&&pen.type==='heraus_choose'){
       document.getElementById('waiting-msg').innerHTML=`⚔ <b>${G.players[G.turn].name}</b> ${t('choosing_opponent')}…`;
+    }else if(pen&&pen.type==='takt_set'){
+      const ch=G.players[pen.challenger];
+      document.getElementById('waiting-msg').innerHTML=`🎯 <b style="color:${ch.color}">${ch.name}</b> spielt Taktfeld…`;
+    }else if(pen&&pen.type==='takt_challenge'){
+      const done=Object.keys(pen.responses||{}).length,need=pen.needed;
+      document.getElementById('waiting-msg').innerHTML=`🎯 Taktfeld läuft… (${done}/${need} gespielt)`;
     }else{
       document.getElementById('waiting-msg').textContent=`${t('waiting_for')} ${G.players[G.turn].name}…`;
     }
     if(isBotDriver()&&isBotTurn()&&G.winner<0) scheduleBotTurn();
-    if(isSSPDefender||isSSPReveal) renderActions();
+    if(isSSPDefender||isSSPReveal||isTaktRespondent||hasBotTaktRespondent) renderActions();
     return;
   }
   const abox=document.getElementById('abox');
@@ -154,7 +162,7 @@ function updateUI(){
     if(isMyTurn&&G.phase!=='done'){abox.classList.add('my-turn');}
     else{abox.classList.remove('my-turn');}
   }
-  if(isMyTurn||isSSPDefender||isSSPReveal)renderActions();
+  if(isMyTurn||isSSPDefender||isSSPReveal||isTaktRespondent)renderActions();
   // Bot trigger for done phase or my turn
   if(isBotDriver()&&isBotTurn()&&G.winner<0){
     scheduleBotTurn();
@@ -221,6 +229,50 @@ function renderActions(){
     if(pen.type==='heraus_roll'){
       const def=G.players[pen.defender];
       ab.innerHTML=`<div class="msg">⚔ Duell: <b>${p.name}</b> vs <span style="color:${def.color}"><b>${def.name}</b></span></div><button class="bbtn red dice" onclick="onHD()">⚔ Duell!</button>`;return;}
+    if(pen.type==='takt_set'){
+      if(G.turn===MY_IDX){
+        ab.innerHTML=`<div class="msg">🎯 Stoppe die Leiste so nah an der Mitte wie möglich!</div><div class="takt-bar-wrap"><div class="takt-bar"><div class="takt-needle" id="takt-needle"></div></div></div><button class="bbtn orange" onclick="onTaktStop()">🎯 STOPP!</button>`;
+        setTimeout(()=>{ if(!_taktActive) startTaktBar(); },0);
+      } else {
+        const ch=G.players[pen.challenger];
+        ab.innerHTML=`<div class="msg">🎯 <span style="color:${ch.color}">${ch.name}</span> spielt… alle spielen danach!</div>`;
+      }
+      return;
+    }
+    if(pen.type==='takt_challenge'){
+      const ch=G.players[pen.challenger];
+      if(MY_IDX!==pen.challenger&&(pen.responses||{})[MY_IDX]==null){
+        ab.innerHTML=`<div class="msg">🎯 <b><span style="color:${ch.color}">${ch.name}</span></b> hat <span style="color:#fbbf24;font-size:1.1em"><b>${pen.challengerScore}</b></span> Punkte – kannst du das schlagen?</div><div class="takt-bar-wrap"><div class="takt-bar"><div class="takt-needle" id="takt-needle"></div></div></div><button class="bbtn orange" onclick="onTaktStop()">🎯 STOPP!</button>`;
+        setTimeout(()=>{ if(!_taktActive) startTaktBar(); },0);
+        if(MY_IDX!==null&&isBot(MY_IDX)) scheduleBotTaktResponse(MY_IDX);
+      } else {
+        const done=Object.keys(pen.responses||{}).length, need=pen.needed;
+        ab.innerHTML=`<div class="msg">⏳ Warte auf andere Spieler… (${done}/${need})</div>`;
+      }
+      // Schedule bot respondents (only driver does this)
+      if(isBotDriver()){
+        G.players.forEach((_,i)=>{
+          if(i!==pen.challenger&&isBot(i)&&(pen.responses||{})[i]==null&&!G.players[i].quit&&G.players[i].pos>=1)
+            scheduleBotTaktResponse(i);
+        });
+      }
+      return;
+    }
+    if(pen.type==='takt_result'){
+      const cp=G.players[pen.challenger];
+      const sorted=[...pen.results].sort((a,b)=>b.score-a.score);
+      const rows=sorted.map(r=>{
+        const pl=G.players[r.idx];
+        return `<div style="display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.15)">
+          <span style="font-size:1.3em">${pl.figure||'●'}</span>
+          <span style="color:${pl.color};font-weight:bold;flex:1">${pl.name}</span>
+          <span style="font-size:1.1em;font-weight:bold;color:${r.won?'#4ade80':'#f87171'}">${r.score} Pkt</span>
+          <span style="font-size:1.2em">${r.won?'✅':'❌'}</span>
+        </div>`;
+      }).join('');
+      ab.innerHTML=`<div style="text-align:center;font-weight:bold;margin-bottom:6px">🎯 ${cp.figure||'●'} <span style="color:${cp.color}">${cp.name}</span>: <span style="color:#fbbf24">${pen.challengerScore} Pkt</span> (Ziel)</div>${rows}`;
+      return;
+    }
   }
 }
 

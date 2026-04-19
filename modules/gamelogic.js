@@ -57,6 +57,11 @@ function afterMove(idx){
     notify('💫','n_sling_back',{n:{name:p.name,color:p.color}});
     endPhase();return;
   }
+  if(ft_==='takt'){
+    const needed=G.players.filter((_,i)=>i!==idx&&!G.players[i].quit&&G.players[i].pos>=1).length;
+    notify('🎯','n_takt_land',{n:{name:p.name,color:p.color}});
+    G.phase='effect';G.pending={type:'takt_set',challenger:idx,challengerScore:null,responses:{},needed};return;
+  }
   if(ft_==='ssp'){
     const sspOpts=G.players.filter((_,i)=>i!==idx&&!G.players[i].quit&&G.players[i].pos>=0);
     if(sspOpts.length===0){notify('✂️','n_ssp_choose_no_opp',{n:{name:p.name,color:p.color}});endPhase();return;}

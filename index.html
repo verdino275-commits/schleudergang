@@ -278,7 +278,7 @@
     <div class="rule"></div><div class="rule"></div><div class="rule"></div>
     <div class="rule"></div><div class="rule"></div><div class="rule"></div>
     <div class="rule"></div><div class="rule"></div><div class="rule"></div>
-    <div class="rule"></div><div class="rule"></div>
+    <div class="rule"></div><div class="rule"></div><div class="rule"></div>
     <br><button class="bbtn purple" onclick="document.getElementById('rules-modal').classList.add('hidden');updateRules()">✓ OK</button>
   </div>
 </div>
@@ -479,6 +479,115 @@ function onHD(){
     }
   },55);
 }
+// ── TAKTFELD ────────────────────────────────────────────────
+let _taktIV=null,_taktPos=0,_taktDir=1,_taktSpeed=1.2,_taktActive=false,_taktElapsed=0;
+
+function startTaktBar(){
+  if(_taktIV){clearInterval(_taktIV);_taktIV=null;}
+  _taktPos=0;_taktDir=1;_taktSpeed=1.2;_taktActive=true;_taktElapsed=0;
+  _taktIV=setInterval(()=>{
+    if(!_taktActive)return;
+    _taktElapsed+=16;
+    if(_taktElapsed%500<16)_taktSpeed=Math.min(2.5,_taktSpeed+0.15);
+    _taktPos+=_taktDir*_taktSpeed;
+    if(_taktPos>=100){_taktPos=100;_taktDir=-1;}
+    if(_taktPos<=0){_taktPos=0;_taktDir=1;}
+    const el=document.getElementById('takt-needle');
+    if(el)el.style.left=_taktPos+'%';
+  },16);
+}
+
+function stopTaktBar(){
+  _taktActive=false;
+  if(_taktIV){clearInterval(_taktIV);_taktIV=null;}
+}
+
+function calcTaktScore(pos){
+  return Math.max(0,Math.round(100-Math.abs(pos-50)*2.2));
+}
+
+function onTaktStop(){
+  if(!_taktActive||!G||!G.pending)return;
+  stopTaktBar();
+  vibe(40);
+  const score=calcTaktScore(_taktPos);
+  const pen=G.pending;
+  // Immediately clear the action area so user doesn't see stale bar while Firebase syncs
+  const ab=document.getElementById('abtns');
+  if(ab)ab.innerHTML=`<div class="msg" style="font-size:1.3em;text-align:center">🎯 <b>${score}</b> Punkte!</div><div class="msg" style="opacity:.7">⏳ Warte auf andere Spieler…</div>`;
+  if(pen.type==='takt_set'){
+    pen.challengerScore=score;
+    addLog(`🎯 ${G.players[pen.challenger].name} stoppt bei ${score}Pkt`);
+    if(pen.needed===0){
+      const p=G.players[pen.challenger];
+      const delta=score>=70?2:score>=35?1:-1;
+      p.pos=Math.max(0,Math.min(34,p.pos+delta));
+      addLog(`🎯 Solo-Ergebnis: ${delta>=0?'+':''}${delta} Felder`);
+      notify('🎯','n_takt_result',{n:{name:p.name,color:p.color}});
+      G.pending=null;endPhase();push();
+    }else{pen.type='takt_challenge';push();}
+  }else if(pen.type==='takt_challenge'){
+    if(MY_IDX===null||(pen.responses||{})[MY_IDX]!=null)return;
+    if(!pen.responses)pen.responses={};
+    pen.responses[MY_IDX]=score;
+    addLog(`🎯 ${G.players[MY_IDX].name} stoppt bei ${score}Pkt`);
+    push();
+    if(Object.keys(pen.responses).length>=pen.needed&&(MY_IDX===pen.challenger||isBotDriver()))resolveTakt();
+  }
+}
+
+function submitTaktScoreAsBot(botIdx,score,phase){
+  if(!G||!G.pending)return;
+  const pen=G.pending;
+  if(phase==='set'&&pen.type==='takt_set'){
+    pen.challengerScore=score;
+    addLog(`🎯 ${G.players[botIdx].name} stoppt bei ${score}Pkt (Bot)`);
+    if(pen.needed===0){
+      const p=G.players[botIdx];
+      const delta=score>=70?2:score>=35?1:-1;
+      p.pos=Math.max(0,Math.min(34,p.pos+delta));
+      G.pending=null;endPhase();push();
+    }else{pen.type='takt_challenge';push();}
+  }else if(phase==='challenge'&&pen.type==='takt_challenge'){
+    if((pen.responses||{})[botIdx]!=null)return;
+    if(!pen.responses)pen.responses={};
+    pen.responses[botIdx]=score;
+    addLog(`🎯 ${G.players[botIdx].name} stoppt bei ${score}Pkt (Bot)`);
+    push();
+    if(Object.keys(pen.responses).length>=pen.needed)resolveTakt();
+  }
+}
+
+function resolveTakt(){
+  const pen=G.pending;
+  if(!pen||pen.type!=='takt_challenge')return;
+  const cIdx=pen.challenger,cScore=pen.challengerScore;
+  let cDelta=0;
+  const results=[];
+  Object.entries(pen.responses||{}).forEach(([is,score])=>{
+    const i=parseInt(is),p=G.players[i];
+    const won=score>cScore;
+    if(won){p.pos=Math.min(34,p.pos+1);cDelta--;addLog(`🎯 ${p.name}(${score}Pkt) schlägt Auslöser → +1`);}
+    else{p.pos=Math.max(0,p.pos-1);cDelta++;addLog(`🎯 ${p.name}(${score}Pkt) schlägt nicht → −1`);}
+    results.push({idx:i,score,won});
+  });
+  const cp=G.players[cIdx];
+  cp.pos=Math.max(0,Math.min(34,cp.pos+cDelta));
+  addLog(`🎯 ${cp.name}(Auslöser,${cScore}Pkt) → ${cDelta>=0?'+':''}${cDelta} Felder`);
+  notify('🎯','n_takt_result',{n:{name:cp.name,color:cp.color}});
+
+  // Store results in pending so all clients can display them
+  G.pending={type:'takt_result',challenger:cIdx,challengerScore:cScore,
+             results:results.map(r=>({idx:r.idx,score:r.score,won:r.won}))};
+  push();
+  // Only driver advances after 3s
+  if(isBotDriver()||MY_IDX===cIdx){
+    setTimeout(()=>{
+      if(G.pending&&G.pending.type==='takt_result'){G.pending=null;endPhase();push();}
+    },3000);
+  }
+}
+
 function onQuit(){
   if(MY_IDX===null||!G)return;
   const p=G.players[MY_IDX];

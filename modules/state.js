@@ -8,8 +8,8 @@ if(CFG_OK){firebase.initializeApp(FIREBASE_CONFIG);DB=firebase.database();}
 
 // ── CONSTANTS ───────────────────────────────────────────────
 const PCOLS=['#ef4444','#22c55e','#eab308','#a78bfa','#f97316'];
-const FTYPE={0:'schranke',4:'arrow',7:'heraus',10:'schlA',11:'arrow',14:'tausch',16:'ssp',17:'arrow',22:'schlB',23:'arrow',29:'becher',30:'becher',31:'becher',32:'becher',33:'becher',34:'ziel'};
-const FLBL=['S','1','2','3','→','5','6','⚔','8','9','🔵','←','12','13','🔄','15','✂','→','18','19','20','21','🔴','←','24','25','26','27','28','B1','B2','B3','B4','B5','🏆'];
+const FTYPE={0:'schranke',4:'arrow',5:'takt',7:'heraus',10:'schlA',11:'arrow',14:'tausch',16:'ssp',17:'arrow',22:'schlB',23:'arrow',29:'becher',30:'becher',31:'becher',32:'becher',33:'becher',34:'ziel'};
+const FLBL=['S','1','2','3','→','🎯','6','⚔','8','9','🔵','←','12','13','🔄','15','✂','→','18','19','20','21','🔴','←','24','25','26','27','28','B1','B2','B3','B4','B5','🏆'];
 function ft(p){return FTYPE[p]||'normal';}
 function fn(p){if(p<0)return'Start';if(p===0)return'Schranke';if(p>=29&&p<=33)return`B${p-28}`;if(p===34)return'Ziel🏆';return`F${p}`;}
 function _d6base(){return Math.floor(Math.random()*6)+1;}
