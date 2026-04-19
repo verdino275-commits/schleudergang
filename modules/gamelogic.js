@@ -52,8 +52,6 @@ function afterMove(idx){
   // Arrow field banner
   if(ft_==='arrow'){notify('➡','n_arrow',{n:{name:p.name,color:p.color}});}
   if(ft_==='schlB'){
-    if(p.visitedSchlB){addLog(`${p.name} auf F22 – kein Effekt (2. Besuch).`);endPhase();return;}
-    p.visitedSchlB=true;
     SFX.whoosh();
     const fp2=p.pos;p.pos=10;startSlingAnim(fp2,10,idx);kick(idx,10);addLog(`💫 ${p.name}→F10!`);
     notify('💫','n_sling_back',{n:{name:p.name,color:p.color}});

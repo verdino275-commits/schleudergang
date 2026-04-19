@@ -303,7 +303,7 @@ html,body{background:var(--bg);color:var(--tx);font-family:'Segoe UI',system-ui,
 .dice3d.glow{filter:drop-shadow(0 0 14px #a855f7) drop-shadow(0 0 6px #06b6d4)}
 
 /* ── EMOTES ─────────────────────────────────────────────── */
-#emote-fab{position:fixed;bottom:22px;right:16px;z-index:800;
+#emote-fab{position:fixed;bottom:72px;right:16px;z-index:800;
   width:50px;height:50px;border-radius:50%;
   background:var(--acc);border:2px solid rgba(168,85,247,.6);
   font-size:1.4em;cursor:pointer;
@@ -311,7 +311,7 @@ html,body{background:var(--bg);color:var(--tx);font-family:'Segoe UI',system-ui,
   transition:transform .15s,opacity .2s;touch-action:manipulation;display:none}
 #emote-fab:active{transform:scale(.88)}
 #emote-fab.cd{opacity:.48;cursor:default}
-#emote-panel{position:fixed;bottom:80px;right:12px;z-index:800;
+#emote-panel{position:fixed;bottom:130px;right:12px;z-index:800;
   background:var(--card);border:1.5px solid var(--border);border-radius:18px;
   padding:12px;display:none;grid-template-columns:repeat(4,1fr);gap:8px;
   box-shadow:0 8px 36px rgba(0,0,0,.6);animation:epSlide .2s ease-out}

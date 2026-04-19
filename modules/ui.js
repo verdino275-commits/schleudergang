@@ -170,7 +170,7 @@ function renderActions(){
   const p=G.players[G.turn];
   document.getElementById('tlabel').innerHTML=`<span style="color:${p.color}">●</span> <b>${p.name}</b> – ${t('you_are_up')}`;
   const ab=document.getElementById('abtns'),dd=document.getElementById('ddisp');
-  if(G.phase==='done'){ab.innerHTML=`<button class="bbtn blue" onclick="onNextTurn()">${t('next_player')}</button>`;return;}
+  if(G.phase==='done'){onNextTurn();return;}
   if(G.phase==='start_roll'){dd.textContent='🎲';ab.innerHTML=`<button class="bbtn purple dice" onclick="onStartRoll()">${t('need_six')}<br><small style="opacity:.7;font-size:.82em">${G.rollsLeft} ${G.rollsLeft===1?t('tries'):t('tries_pl')}</small></button>`;return;}
   if(G.phase==='schranken'){dd.textContent='🎲';ab.innerHTML=`<div class="msg">${t('schranke_rule')}</div><button class="bbtn orange dice" onclick="onSchrankenRoll()">${t('roll_dice')}</button>`;return;}
   if(G.phase==='roll'){
