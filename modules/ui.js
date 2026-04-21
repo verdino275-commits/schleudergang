@@ -90,7 +90,7 @@ function updateUI(){
     showFigurePicker(MY_IDX,null);
   }
   // Ensure stats exist on all players (safety for old Firebase states)
-  if(G&&G.players)G.players.forEach(p=>{if(!p.stats)p.stats={kicked:0,gotKicked:0,duelsWon:0,duelsLost:0,tausch:0,sspWon:0,sspLost:0,sixes:0};});
+  if(G&&G.players)G.players.forEach(p=>{if(!p.stats)p.stats={kicked:0,gotKicked:0,duelsWon:0,duelsLost:0,tausch:0,sspWon:0,sspLost:0,sixes:0,taktBestScore:0,slung:0,becherStuck:0};});
   // Resolve SSP when both have picked - challenger's device executes
   if(G.pending?.type==='ssp_pick'&&G.pending.chalPick!=null&&G.pending.defPick!=null&&(MY_IDX===G.turn||(isBotDriver()&&isBot(G.turn)))){
     resolveSSP();
@@ -127,15 +127,16 @@ function updateUI(){
   const isSSPReveal=G.pending?.type==='ssp_reveal';
   const isTaktRespondent=G.pending?.type==='takt_challenge'&&MY_IDX!==null&&MY_IDX!==G.pending.challenger&&!myQuit&&(G.players[MY_IDX]?.pos||0)>=1&&G.pending.responses?.[MY_IDX]==null;
   const hasBotTaktRespondent=isBotDriver()&&G.pending?.type==='takt_challenge'&&G.players.some((p,i)=>i!==G.pending.challenger&&isBot(i)&&!p.quit&&(p.pos||0)>=1&&G.pending.responses?.[i]==null);
+  const isTaktResult=G.pending?.type==='takt_result';
   // Warte-Box anzeigen wenn: nicht mein Zug, oder Animation läuft (mein Zug aber noch animiert)
-  document.getElementById('waiting-box').classList.toggle('hidden',(isMyTurn&&!isAnimating)||G.phase==='done'||myQuit||isSSPDefender||isSSPReveal||isTaktRespondent);
-  // Aktions-Box ausblenden während Animation läuft
-  document.getElementById('abox').classList.toggle('hidden',(!isMyTurn&&G.phase!=='done'&&!isSSPDefender&&!isSSPReveal&&!isTaktRespondent)||myQuit||isAnimating);
-  if(isAnimating&&isMyTurn){
+  document.getElementById('waiting-box').classList.toggle('hidden',(isMyTurn&&(!isAnimating||isTaktResult))||G.phase==='done'||myQuit||isSSPDefender||isSSPReveal||isTaktRespondent||isTaktResult);
+  // Aktions-Box ausblenden während Animation läuft (außer bei takt_result — Ergebnis immer anzeigen)
+  document.getElementById('abox').classList.toggle('hidden',(!isMyTurn&&!isTaktResult&&G.phase!=='done'&&!isSSPDefender&&!isSSPReveal&&!isTaktRespondent)||myQuit||(isAnimating&&!isTaktResult));
+  if(isAnimating&&isMyTurn&&!isTaktResult){
     document.getElementById('waiting-msg').textContent='⏳ …';
     return;
   }
-  if(!isMyTurn&&G.phase!=='done'){
+  if(!isMyTurn&&!isTaktResult&&G.phase!=='done'){
     const pen=G.pending;
     if(pen&&pen.type==='heraus_roll'){
       const att=G.players[G.turn],def=G.players[pen.defender];
@@ -168,7 +169,7 @@ function updateUI(){
     if(isMyTurn&&G.phase!=='done'){abox.classList.add('my-turn');}
     else{abox.classList.remove('my-turn');}
   }
-  if(isMyTurn||isSSPDefender||isSSPReveal||isTaktRespondent)renderActions();
+  if(isMyTurn||isSSPDefender||isSSPReveal||isTaktRespondent||isTaktResult)renderActions();
   // Bot trigger for done phase or my turn
   if(isBotDriver()&&isBotTurn()&&G.winner<0){
     scheduleBotTurn();

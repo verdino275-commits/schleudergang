@@ -54,6 +54,7 @@ function afterMove(idx){
   if(ft_==='schlB'){
     SFX.whoosh();
     const fp2=p.pos;p.pos=10;startSlingAnim(fp2,10,idx);kick(idx,10);addLog(`💫 ${p.name}→F10!`);
+    if(p.stats)p.stats.slung=(p.stats.slung||0)+1;
     notify('💫','n_sling_back',{n:{name:p.name,color:p.color}});
     endPhase();return;
   }

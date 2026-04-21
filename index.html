@@ -319,6 +319,7 @@ const TUT_STEPS=[
   {title:'tut_1_title',body:'tut_1_body',spot:{el:'#abox'}},
   {title:'tut_2_title',body:'tut_2_body',spot:{el:'#board-wrap',rect:true}},
   {title:'tut_3_title',body:'tut_3_body',spot:{fp:0}},
+  {title:'tut_takt_title',body:'tut_takt_body',spot:{fp:5}},
   {title:'tut_4_title',body:'tut_4_body',spot:{fp:7}},
   {title:'tut_5_title',body:'tut_5_body',spot:{fp:14}},
   {title:'tut_6_title',body:'tut_6_body',spot:{fp:16}},
@@ -427,7 +428,7 @@ function onRoll(){disableBtn();const r=d6();_broadcastRoll(r,700,v=>{
   if(p.pos>=29&&p.pos<=33){G.phase='becher';handleBecher(v);return;}const np=moveTo(G.turn,p.pos+v);addLog(`${p.name} würfelt ${v}→${fn(np)}${v===6?' 🎲 Nochmal!':''}`);if(G.phase==='effect'){push();return;}
   if(v===6&&G.winner<0){if(G.players[G.turn]?.stats)G.players[G.turn].stats.sixes++;afterMove(G.turn);if(G.phase!=='effect'){G.phase='roll';addLog(`🎲 ${p.name} nochmal würfeln!`);notify('🎲','n_six_again',{n:{name:p.name,color:p.color}});}}else{afterMove(G.turn);}push();});}
 function onBecherRoll(){disableBtn();const r=d6();_broadcastRoll(r,700,v=>handleBecher(v));}
-function handleBecher(v){SFX.becher();const p=G.players[G.turn];if(p.pos===33){if(v===2){const hfp=p.pos;p.pos=34;startMoveAnim(hfp,34,G.turn);kick(G.turn,34);addLog(`${p.name} würfelt 2→Ziel🏆`);notify('🏆','n_becher2goal',{n:{name:p.name,color:p.color}});}else if(v===1){const hfp2=p.pos;p.pos=29;startMoveAnim(hfp2,29,G.turn);kick(G.turn,29);addLog(`${p.name} würfelt 1→B1!`);notify('😬','n_becher1back',{n:{name:p.name,color:p.color}});}else{addLog(`${p.name} würfelt ${v}→wartet.`);notify('⏳','n_becher_wait',{n:{name:p.name,color:p.color}});}}else{if(v%2===0){const np=Math.min(34,p.pos+1);const hfp3=p.pos;p.pos=np;startMoveAnim(hfp3,np,G.turn);kick(G.turn,np);addLog(`${p.name} würfelt ${v}→${fn(np)}`);}else addLog(`${p.name} würfelt ${v}→bleibt.`);}endPhase();push();}
+function handleBecher(v){SFX.becher();const p=G.players[G.turn];if(p.pos===33){if(v===2){const hfp=p.pos;p.pos=34;startMoveAnim(hfp,34,G.turn);kick(G.turn,34);addLog(`${p.name} würfelt 2→Ziel🏆`);notify('🏆','n_becher2goal',{n:{name:p.name,color:p.color}});}else if(v===1){const hfp2=p.pos;p.pos=29;startMoveAnim(hfp2,29,G.turn);kick(G.turn,29);addLog(`${p.name} würfelt 1→B1!`);notify('😬','n_becher1back',{n:{name:p.name,color:p.color}});}else{if(p.stats)p.stats.becherStuck=(p.stats.becherStuck||0)+1;addLog(`${p.name} würfelt ${v}→wartet.`);notify('⏳','n_becher_wait',{n:{name:p.name,color:p.color}});}}else{if(v%2===0){const np=Math.min(34,p.pos+1);const hfp3=p.pos;p.pos=np;startMoveAnim(hfp3,np,G.turn);kick(G.turn,np);addLog(`${p.name} würfelt ${v}→${fn(np)}`);}else{if(p.stats)p.stats.becherStuck=(p.stats.becherStuck||0)+1;addLog(`${p.name} würfelt ${v}→bleibt.`);}}endPhase();push();}
 function onWinRoll(){disableBtn();const r=d6();_broadcastRoll(r,500,v=>{const wp=G.players[G.turn];addLog(`🏆 ${wp.name} würfelt ${v}→SIEG!`);notify('🏆','win_msg',{n:{name:wp.name,color:wp.color}});G.winner=G.turn;G.phase='done';push();});}
 function onTausch(di){const a=G.players[G.turn],b=G.players[di];const fromA=a.pos,fromB=b.pos;a.pos=fromB;b.pos=fromA;SFX.tausch();startMoveAnim(fromA,a.pos,G.turn);startMoveAnim(fromB,b.pos,di);kick(G.turn,a.pos);kick(di,b.pos);if(a.stats)a.stats.tausch++;if(b.stats)b.stats.tausch++;addLog(`🔄 ${a.name}↔${b.name}`);notify('🔄','n_tausch_done',{n:{name:a.name,color:a.color},n2:{name:b.name,color:b.color}});G.pending=null;endPhase();push();}
 function onHC(di){
@@ -525,6 +526,7 @@ function onTaktStop(){
   if(ab)ab.innerHTML=`<div class="msg" style="font-size:1.3em;text-align:center">🎯 <b>${score}</b> Punkte!</div><div class="msg" style="opacity:.7">⏳ Warte auf andere Spieler…</div>`;
   if(pen.type==='takt_set'){
     pen.challengerScore=score;
+    const _cp=G.players[pen.challenger];if(_cp?.stats)_cp.stats.taktBestScore=Math.max(_cp.stats.taktBestScore||0,score);
     addLog(`🎯 ${G.players[pen.challenger].name} stoppt bei ${score}Pkt`);
     if(pen.needed===0){
       const p=G.players[pen.challenger];
@@ -538,6 +540,7 @@ function onTaktStop(){
     if(MY_IDX===null||(pen.responses||{})[MY_IDX]!=null)return;
     if(!pen.responses)pen.responses={};
     pen.responses[MY_IDX]=score;
+    const _rp=G.players[MY_IDX];if(_rp?.stats)_rp.stats.taktBestScore=Math.max(_rp.stats.taktBestScore||0,score);
     addLog(`🎯 ${G.players[MY_IDX].name} stoppt bei ${score}Pkt`);
     push();
     if(Object.keys(pen.responses).length>=pen.needed&&(MY_IDX===pen.challenger||isBotDriver()))resolveTakt();
@@ -549,6 +552,7 @@ function submitTaktScoreAsBot(botIdx,score,phase){
   const pen=G.pending;
   if(phase==='set'&&pen.type==='takt_set'){
     pen.challengerScore=score;
+    const _bp=G.players[botIdx];if(_bp?.stats)_bp.stats.taktBestScore=Math.max(_bp.stats.taktBestScore||0,score);
     addLog(`🎯 ${G.players[botIdx].name} stoppt bei ${score}Pkt (Bot)`);
     if(pen.needed===0){
       const p=G.players[botIdx];
@@ -560,6 +564,7 @@ function submitTaktScoreAsBot(botIdx,score,phase){
     if((pen.responses||{})[botIdx]!=null)return;
     if(!pen.responses)pen.responses={};
     pen.responses[botIdx]=score;
+    const _bc=G.players[botIdx];if(_bc?.stats)_bc.stats.taktBestScore=Math.max(_bc.stats.taktBestScore||0,score);
     addLog(`🎯 ${G.players[botIdx].name} stoppt bei ${score}Pkt (Bot)`);
     push();
     if(Object.keys(pen.responses).length>=pen.needed)resolveTakt();
@@ -1093,11 +1098,12 @@ function showStats(){
     {key:'stats_most_kicked', fn:p=>p.stats?.kicked||0},
     {key:'stats_most_got_kicked', fn:p=>p.stats?.gotKicked||0},
     {key:'stats_duel_king', fn:p=>p.stats?.duelsWon||0},
-    {key:'stats_duel_loser', fn:p=>p.stats?.duelsLost||0},
     {key:'stats_swap_master', fn:p=>p.stats?.tausch||0},
     {key:'stats_ssp_king', fn:p=>p.stats?.sspWon||0},
-    {key:'stats_ssp_loser', fn:p=>p.stats?.sspLost||0},
     {key:'stats_six_king', fn:p=>p.stats?.sixes||0},
+    {key:'stats_takt_maestro', fn:p=>p.stats?.taktBestScore||0, unit:'stats_points'},
+    {key:'stats_slung', fn:p=>p.stats?.slung||0},
+    {key:'stats_becher_stuck', fn:p=>p.stats?.becherStuck||0},
   ];
 
   rows.innerHTML=statDefs.map(def=>{
@@ -1107,7 +1113,7 @@ function showStats(){
       <div class="stat-icon"><div style="width:12px;height:12px;border-radius:50%;background:${res.p.color};display:inline-block"></div></div>
       <div class="stat-body">
         <div class="stat-label">${t(def.key)}</div>
-        <div class="stat-value"><span style="color:${res.p.color}">${res.p.name}</span> – ${res.val} ${t('stats_times')}</div>
+        <div class="stat-value"><span style="color:${res.p.color}">${res.p.name}</span> – ${res.val} ${t(def.unit||'stats_times')}</div>
       </div>
     </div>`;
   }).join('');
