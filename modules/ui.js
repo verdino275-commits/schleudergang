@@ -95,6 +95,12 @@ function updateUI(){
   if(G.pending?.type==='ssp_pick'&&G.pending.chalPick!=null&&G.pending.defPick!=null&&(MY_IDX===G.turn||(isBotDriver()&&isBot(G.turn)))){
     resolveSSP();
   }
+  // Resolve takt when all responses are in - challenger's device (or bot driver) executes
+  if(G.pending?.type==='takt_challenge'&&
+     Object.keys(G.pending.responses||{}).length>=G.pending.needed&&
+     (MY_IDX===G.pending.challenger||isBotDriver())){
+    resolveTakt();
+  }
   if(G.notification&&G.notification.ts>lastNotifTs){
     lastNotifTs=G.notification.ts;
     showInfoBanner(G.notification.icon, buildNotif(G.notification.key||'', G.notification.params||{}));
