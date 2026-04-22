@@ -558,7 +558,15 @@ function submitTaktScoreAsBot(botIdx,score,phase){
       const p=G.players[botIdx];
       const delta=score>=70?2:score>=35?1:-1;
       p.pos=Math.max(0,Math.min(34,p.pos+delta));
-      G.pending=null;endPhase();push();
+      addLog(`🎯 Solo-Ergebnis: ${delta>=0?'+':''}${delta} Felder`);
+      notify('🎯','n_takt_result',{n:{name:p.name,color:p.color}});
+      G.pending={type:'takt_result',challenger:botIdx,challengerScore:score,results:[]};
+      push();
+      if(isBotDriver()){
+        setTimeout(()=>{
+          if(G.pending&&G.pending.type==='takt_result'){G.pending=null;endPhase();push();}
+        },adminAutoPlay?100:3000);
+      }
     }else{pen.type='takt_challenge';push();}
   }else if(phase==='challenge'&&pen.type==='takt_challenge'){
     if((pen.responses||{})[botIdx]!=null)return;

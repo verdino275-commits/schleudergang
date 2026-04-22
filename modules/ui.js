@@ -131,7 +131,7 @@ function updateUI(){
   // Warte-Box anzeigen wenn: nicht mein Zug, oder Animation läuft (mein Zug aber noch animiert)
   document.getElementById('waiting-box').classList.toggle('hidden',(isMyTurn&&(!isAnimating||isTaktResult))||G.phase==='done'||myQuit||isSSPDefender||isSSPReveal||isTaktRespondent||isTaktResult);
   // Aktions-Box ausblenden während Animation läuft (außer bei takt_result — Ergebnis immer anzeigen)
-  document.getElementById('abox').classList.toggle('hidden',(!isMyTurn&&!isTaktResult&&G.phase!=='done'&&!isSSPDefender&&!isSSPReveal&&!isTaktRespondent)||myQuit||(isAnimating&&!isTaktResult));
+  document.getElementById('abox').classList.toggle('hidden',(!isMyTurn&&!isTaktResult&&!isSSPDefender&&!isSSPReveal&&!isTaktRespondent)||myQuit||(isAnimating&&!isTaktResult));
   if(isAnimating&&isMyTurn&&!isTaktResult){
     document.getElementById('waiting-msg').textContent='⏳ …';
     return;
