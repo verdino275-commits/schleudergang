@@ -58,6 +58,11 @@ function buildNotif(key,params){
     case 'n_duel_att_wins':   return `${ph} ${t('n_duel_wins')} ${p2h}! (${r1}:${r2}) – ${ph} ${t('n_duel_plus1')} ${p2h} ${t('n_duel_minus1')}`;
     case 'n_duel_def_wins':   return `${p2h} ${t('n_duel_wins')} ${ph}! (${r2}:${r1}) – ${p2h} ${t('n_duel_plus1')} ${ph} ${t('n_duel_minus1')}`;
     case 'n_duel_draw':       return `🤝 ${t('n_duel_draw')} (${r1}:${r2}) ${t('n_duel_reroll')}`;
+    case 'n_hw_land':         return `⚔ ${ph} ${t('challenges')} ${p2h} — ${t('n_hw_land')}`;
+    case 'n_hw_chal_wins':    return `🎲 ${r1} (${params.s1==='hoch'?'⬆':'⬇'} vs ${params.s2==='hoch'?'⬆':'⬇'}) — ${ph} ✅ +1 ⬆, ${p2h} ❌ -1 ⬇`;
+    case 'n_hw_def_wins':     return `🎲 ${r1} (${params.s1==='hoch'?'⬆':'⬇'} vs ${params.s2==='hoch'?'⬆':'⬇'}) — ${p2h} ✅ +1 ⬆, ${ph} ❌ -1 ⬇`;
+    case 'n_hw_both_right':   return `🎲 ${r1} — 🎯 ${t('n_hw_both_right')}`;
+    case 'n_hw_both_wrong':   return `🎲 ${r1} — 💥 ${t('n_hw_both_wrong')}`;
     case 'n_quit':            return `${ph} ${t('n_quit')}`;
     case 'n_all_quit_win':    return `🎉 ${ph} ${t('n_all_quit_win')}`;
     case 'n_ssp_challenge':   return `${ph} ${t('n_ssp_challenge')}`;
@@ -95,6 +100,11 @@ function updateUI(){
   if(G.pending?.type==='ssp_pick'&&G.pending.chalPick!=null&&G.pending.defPick!=null&&(MY_IDX===G.turn||(isBotDriver()&&isBot(G.turn)))){
     resolveSSP();
   }
+  // Resolve heraus_wette when both picked - challenger's device executes
+  if(G.pending?.type==='heraus_wette'&&G.pending.chalPick!=null&&G.pending.defPick!=null&&
+     (MY_IDX===G.turn||(isBotDriver()&&isBot(G.turn)))){
+    resolveHerausWette();
+  }
   // Resolve takt when all responses are in - challenger's device (or bot driver) executes
   if(G.pending?.type==='takt_challenge'&&
      Object.keys(G.pending.responses||{}).length>=G.pending.needed&&
@@ -126,12 +136,13 @@ function updateUI(){
   const isSSPDefender=(G.pending?.type==='ssp_pick'||G.pending?.type==='ssp_reveal')&&(G.pending.defender===MY_IDX||(isBotDriver()&&isBot(G.pending.defender)))&&!myQuit;
   const isSSPReveal=G.pending?.type==='ssp_reveal';
   const isTaktRespondent=G.pending?.type==='takt_challenge'&&MY_IDX!==null&&MY_IDX!==G.pending.challenger&&!myQuit&&(G.players[MY_IDX]?.pos||0)>=1&&G.pending.responses?.[MY_IDX]==null;
+  const isHerausWetteParticipant=G.pending?.type==='heraus_wette'&&MY_IDX!==null&&(MY_IDX===G.turn||MY_IDX===G.pending?.defender)&&!myQuit;
   const hasBotTaktRespondent=isBotDriver()&&G.pending?.type==='takt_challenge'&&G.players.some((p,i)=>i!==G.pending.challenger&&isBot(i)&&!p.quit&&(p.pos||0)>=1&&G.pending.responses?.[i]==null);
   const isTaktResult=G.pending?.type==='takt_result';
   // Warte-Box anzeigen wenn: nicht mein Zug, oder Animation läuft (mein Zug aber noch animiert)
-  document.getElementById('waiting-box').classList.toggle('hidden',(isMyTurn&&(!isAnimating||isTaktResult))||G.phase==='done'||myQuit||isSSPDefender||isSSPReveal||isTaktRespondent||isTaktResult);
+  document.getElementById('waiting-box').classList.toggle('hidden',(isMyTurn&&(!isAnimating||isTaktResult))||G.phase==='done'||myQuit||isSSPDefender||isSSPReveal||isTaktRespondent||isTaktResult||isHerausWetteParticipant);
   // Aktions-Box ausblenden während Animation läuft (außer bei takt_result — Ergebnis immer anzeigen)
-  document.getElementById('abox').classList.toggle('hidden',(!isMyTurn&&!isTaktResult&&!isSSPDefender&&!isSSPReveal&&!isTaktRespondent)||myQuit||(isAnimating&&!isTaktResult));
+  document.getElementById('abox').classList.toggle('hidden',(!isMyTurn&&!isTaktResult&&!isSSPDefender&&!isSSPReveal&&!isTaktRespondent&&!isHerausWetteParticipant)||myQuit||(isAnimating&&!isTaktResult));
   if(isAnimating&&isMyTurn&&!isTaktResult){
     document.getElementById('waiting-msg').textContent='⏳ …';
     return;
@@ -149,6 +160,10 @@ function updateUI(){
     }else if(pen&&pen.type==='ssp_reveal'){
       const ce2=SSP_EMOJI[pen.chalPick],de2=SSP_EMOJI[pen.defPick];
       document.getElementById('waiting-msg').innerHTML=`${ce2} vs ${de2} – Ergebnis folgt…`;
+    }else if(pen&&pen.type==='heraus_wette'){
+      const ch=G.players[G.turn],df=G.players[pen.defender];
+      const cDone=pen.chalPick!=null,dDone=pen.defPick!=null;
+      document.getElementById('waiting-msg').innerHTML=`⚔ <b style="color:${ch.color}">${ch.name}</b> vs <b style="color:${df.color}">${df.name}</b> — ${cDone&&dDone?'🎲 Würfel fällt…':t('hw_spectate')}`;
     }else if(pen&&pen.type==='heraus_choose'){
       document.getElementById('waiting-msg').innerHTML=`⚔ <b>${G.players[G.turn].name}</b> ${t('choosing_opponent')}…`;
     }else if(pen&&pen.type==='takt_set'){
@@ -161,7 +176,12 @@ function updateUI(){
       document.getElementById('waiting-msg').textContent=`${t('waiting_for')} ${G.players[G.turn].name}…`;
     }
     if(isBotDriver()&&isBotTurn()&&G.winner<0) scheduleBotTurn();
-    if(isSSPDefender||isSSPReveal||isTaktRespondent||hasBotTaktRespondent) renderActions();
+    if(isSSPDefender||isSSPReveal||isTaktRespondent||hasBotTaktRespondent||isHerausWetteParticipant) renderActions();
+    // Bot als Wette-Defender
+    if(isBotDriver()&&G.pending?.type==='heraus_wette'&&G.winner<0){
+      const defIdx=G.pending.defender;
+      if(isBot(defIdx)&&G.pending.defPick==null) scheduleBotWettePick(defIdx);
+    }
     return;
   }
   const abox=document.getElementById('abox');
@@ -233,6 +253,25 @@ function renderActions(){
       const opts=G.players.map((pl,i)=>i!==G.turn&&pl.pos>=0?`<button class="cbtn" onclick="onHC(${i})" style="border-color:${pl.color}"><span style="color:${pl.color}">●</span> <b>${pl.name}</b><small>${fn(pl.pos)}</small></button>`:'').join('');
       ab.innerHTML=`<div class="msg">${t('heraus_msg')}</div><div class="choices">${opts||'<div class="msg">Kein Gegner.</div>'}</div>`;
       if(!opts)ab.innerHTML+=`<button class="bbtn purple" onclick="onSkip()">OK</button>`;return;}
+    if(pen.type==='heraus_wette'){
+      const def=G.players[pen.defender];
+      const isChal=G.turn===MY_IDX, isDef=pen.defender===MY_IDX;
+      const myPick=isChal?pen.chalPick:isDef?pen.defPick:null;
+      if(myPick==null&&(isChal||isDef)){
+        const oppName=isChal?def.name:G.players[G.turn].name;
+        const oppColor=isChal?def.color:G.players[G.turn].color;
+        ab.innerHTML=`<div class="msg">⚔ ${t(isChal?'hw_as_chal':'hw_as_def')} <b style="color:${oppColor}">${oppName}</b><br><small style="opacity:.75">${t('hw_pick_msg')}</small></div>
+          <div class="choices" style="grid-template-columns:1fr 1fr;gap:10px;margin-top:8px">
+            <button class="cbtn" onclick="onHerausWettePick('hoch')" style="font-size:1.5em;padding:16px 8px">📈<br><small style="font-size:.6em">${t('hw_hoch')}</small></button>
+            <button class="cbtn" onclick="onHerausWettePick('niedrig')" style="font-size:1.5em;padding:16px 8px">📉<br><small style="font-size:.6em">${t('hw_niedrig')}</small></button>
+          </div>
+          <div style="margin-top:10px;height:6px;background:rgba(255,255,255,.15);border-radius:3px;overflow:hidden"><div style="height:100%;background:var(--acc);animation:bar-shrink 7s linear forwards"></div></div>`;
+        startHerausWetteTimer();
+        return;
+      }
+      const otherName=isChal?def.name:G.players[G.turn].name;
+      ab.innerHTML=`<div class="msg" style="text-align:center;padding:16px 0">✅ ${t('hw_wait_other')} <b>${otherName}</b>…<br><small style="opacity:.6">${myPick==='hoch'?'📈 '+t('hw_hoch'):'📉 '+t('hw_niedrig')}</small></div>`;
+      return;}
     if(pen.type==='heraus_roll'){
       const def=G.players[pen.defender];
       ab.innerHTML=`<div class="msg">⚔ Duell: <b>${p.name}</b> vs <span style="color:${def.color}"><b>${def.name}</b></span></div><button class="bbtn red dice" onclick="onHD()">⚔ Duell!</button>`;return;}

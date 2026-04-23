@@ -116,6 +116,12 @@ function runBotTurn(){
       else onSkip();
       return;
     }
+    if(pen.type==='heraus_wette'&&pen.chalPick==null){
+      const picks=['hoch','niedrig'];
+      pen.chalPick=picks[Math.floor(Math.random()*2)];
+      push();
+      return;
+    }
     if(pen.type==='heraus_roll'){onHD();return;}
     if(pen.type==='ssp_choose'){
       const opp=strongestOpponent();
@@ -145,6 +151,16 @@ function runBotTurn(){
       return;
     }
   }
+}
+
+function scheduleBotWettePick(defIdx){
+  setTimeout(()=>{
+    if(!G||!G.pending||G.pending.type!=='heraus_wette')return;
+    if(!isBot(defIdx)||G.pending.defPick!=null)return;
+    const picks=['hoch','niedrig'];
+    G.pending.defPick=picks[Math.floor(Math.random()*2)];
+    push();
+  },adminAutoPlay?10:500);
 }
 
 let _botTaktTimers={};

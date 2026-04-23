@@ -432,10 +432,69 @@ function handleBecher(v){SFX.becher();const p=G.players[G.turn];if(p.pos===33){i
 function onWinRoll(){disableBtn();const r=d6();_broadcastRoll(r,500,v=>{const wp=G.players[G.turn];addLog(`🏆 ${wp.name} würfelt ${v}→SIEG!`);notify('🏆','win_msg',{n:{name:wp.name,color:wp.color}});G.winner=G.turn;G.phase='done';push();});}
 function onTausch(di){const a=G.players[G.turn],b=G.players[di];const fromA=a.pos,fromB=b.pos;a.pos=fromB;b.pos=fromA;SFX.tausch();startMoveAnim(fromA,a.pos,G.turn);startMoveAnim(fromB,b.pos,di);kick(G.turn,a.pos);kick(di,b.pos);if(a.stats)a.stats.tausch++;if(b.stats)b.stats.tausch++;addLog(`🔄 ${a.name}↔${b.name}`);notify('🔄','n_tausch_done',{n:{name:a.name,color:a.color},n2:{name:b.name,color:b.color}});G.pending=null;endPhase();push();}
 function onHC(di){
-  G.pending={type:'heraus_roll',defender:di};
-  const att=G.players[G.turn], def=G.players[di];
-  notify('⚔','n_duel_challenge',{n:{name:att.name,color:att.color}});
+  G.pending={type:'heraus_wette',defender:di,chalPick:null,defPick:null,ts:Date.now()};
+  const att=G.players[G.turn],def=G.players[di];
+  notify('⚔','n_hw_land',{n:{name:att.name,color:att.color},n2:{name:def.name,color:def.color}});
   push();
+}
+let _hwTimerActive=false;
+function startHerausWetteTimer(){
+  if(_hwTimerActive)return;
+  _hwTimerActive=true;
+  setTimeout(()=>{
+    _hwTimerActive=false;
+    if(!G||!G.pending||G.pending.type!=='heraus_wette')return;
+    if(G.turn===MY_IDX&&G.pending.chalPick==null){G.pending.chalPick='niedrig';push();}
+    if(G.pending.defender===MY_IDX&&G.pending.defPick==null){G.pending.defPick='niedrig';push();}
+  },7000);
+}
+function onHerausWettePick(pick){
+  const pen=G.pending;
+  if(!pen||pen.type!=='heraus_wette')return;
+  SFX.click();
+  if(G.turn===MY_IDX&&pen.chalPick==null){pen.chalPick=pick;push();}
+  else if(pen.defender===MY_IDX&&pen.defPick==null){pen.defPick=pick;push();}
+}
+function applyHerausWetteResult(attIdx,defIdx,attDelta,defDelta){
+  const att=G.players[attIdx],def=G.players[defIdx];
+  if(attDelta>0){if(att.pos<34){const f=att.pos;att.pos++;startMoveAnim(f,att.pos,attIdx);kick(attIdx,att.pos);}}
+  else if(attDelta<0){if(att.pos>0){const f=att.pos;att.pos--;startMoveAnim(f,att.pos,attIdx);}}
+  if(defDelta>0){if(def.pos<34){const f=def.pos;def.pos++;startMoveAnim(f,def.pos,defIdx);kick(defIdx,def.pos);}}
+  else if(defDelta<0){if(def.pos>0){const f=def.pos;def.pos--;startMoveAnim(f,def.pos,defIdx);}}
+  if(attDelta>0&&att.stats)att.stats.duelsWon++;
+  if(attDelta<0&&att.stats)att.stats.duelsLost++;
+  if(defDelta>0&&def.stats)def.stats.duelsWon++;
+  if(defDelta<0&&def.stats)def.stats.duelsLost++;
+  addLog(`⚔ Wette: ${att.name}→${attDelta>0?'+1':'-1'}, ${def.name}→${defDelta>0?'+1':'-1'}`);
+}
+function resolveHerausWette(){
+  const pen=G.pending;
+  if(!pen||pen.type!=='heraus_wette')return;
+  pen.type='heraus_wette_roll';
+  const attIdx=G.turn,defIdx=pen.defender;
+  const chalPick=pen.chalPick||'niedrig',defPick=pen.defPick||'niedrig';
+  disableBtn();
+  const r=d6();
+  _broadcastRoll(r,700,v=>{
+    const isHoch=v>=4;
+    const cR=(chalPick==='hoch')===isHoch;
+    const dR=(defPick==='hoch')===isHoch;
+    const att=G.players[attIdx],def=G.players[defIdx];
+    if(cR&&!dR){
+      applyHerausWetteResult(attIdx,defIdx,+1,-1);
+      notify('⚔','n_hw_chal_wins',{n:{name:att.name,color:att.color},n2:{name:def.name,color:def.color},r1:v,s1:chalPick,s2:defPick});
+    }else if(dR&&!cR){
+      applyHerausWetteResult(attIdx,defIdx,-1,+1);
+      notify('⚔','n_hw_def_wins',{n:{name:att.name,color:att.color},n2:{name:def.name,color:def.color},r1:v,s1:chalPick,s2:defPick});
+    }else if(cR&&dR){
+      applyHerausWetteResult(attIdx,defIdx,+1,+1);
+      notify('⚔','n_hw_both_right',{n:{name:att.name,color:att.color},n2:{name:def.name,color:def.color},r1:v});
+    }else{
+      applyHerausWetteResult(attIdx,defIdx,-1,-1);
+      notify('⚔','n_hw_both_wrong',{n:{name:att.name,color:att.color},n2:{name:def.name,color:def.color},r1:v});
+    }
+    G.pending=null;endPhase();push();
+  });
 }
 function onHD(){
   disableBtn();
