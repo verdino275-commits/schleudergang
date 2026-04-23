@@ -177,6 +177,10 @@ function updateUI(){
     }
     if(isBotDriver()&&isBotTurn()&&G.winner<0) scheduleBotTurn();
     if(isSSPDefender||isSSPReveal||isTaktRespondent||hasBotTaktRespondent||isHerausWetteParticipant) renderActions();
+    if(isBotDriver()&&G.pending?.type==='heraus_wette'&&G.winner<0){
+      const defIdx=G.pending.defender;
+      if(isBot(defIdx)&&G.pending.defPick==null) scheduleBotWettePick(defIdx);
+    }
     return;
   }
   const abox=document.getElementById('abox');
