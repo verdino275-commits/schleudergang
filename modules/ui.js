@@ -177,11 +177,6 @@ function updateUI(){
     }
     if(isBotDriver()&&isBotTurn()&&G.winner<0) scheduleBotTurn();
     if(isSSPDefender||isSSPReveal||isTaktRespondent||hasBotTaktRespondent||isHerausWetteParticipant) renderActions();
-    // Bot als Wette-Defender
-    if(isBotDriver()&&G.pending?.type==='heraus_wette'&&G.winner<0){
-      const defIdx=G.pending.defender;
-      if(isBot(defIdx)&&G.pending.defPick==null) scheduleBotWettePick(defIdx);
-    }
     return;
   }
   const abox=document.getElementById('abox');
@@ -189,7 +184,7 @@ function updateUI(){
     if(isMyTurn&&G.phase!=='done'){abox.classList.add('my-turn');}
     else{abox.classList.remove('my-turn');}
   }
-  if(isMyTurn||isSSPDefender||isSSPReveal||isTaktRespondent||isTaktResult)renderActions();
+  if(isMyTurn||isSSPDefender||isSSPReveal||isTaktRespondent||isTaktResult||isHerausWetteParticipant)renderActions();
   // Bot trigger for done phase or my turn
   if(isBotDriver()&&isBotTurn()&&G.winner<0){
     scheduleBotTurn();
@@ -198,6 +193,11 @@ function updateUI(){
   if(isBotDriver()&&G.pending?.type==='ssp_pick'&&G.winner<0){
     const defIdx=G.pending.defender;
     if(isBot(defIdx)&&G.pending.defPick==null) scheduleBotDefenderPick();
+  }
+  // Bot als Wette-Defender — immer prüfen, unabhängig wessen Zug
+  if(isBotDriver()&&G.pending?.type==='heraus_wette'&&G.winner<0){
+    const defIdx=G.pending.defender;
+    if(isBot(defIdx)&&G.pending.defPick==null) scheduleBotWettePick(defIdx);
   }
 }
 
