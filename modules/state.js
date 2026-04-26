@@ -25,9 +25,18 @@ function newState(names){
     log:[`Spiel gestartet! ${names[0]} beginnt.`]};
 }
 function addLog(m){G.log.unshift(m);}
+let _pushErrShown=false;
 async function push(){
   if(!DB||!GAME_ID)return;
   const state=JSON.parse(JSON.stringify(G));
-  // Use update to preserve chatMsgs sibling node
-  await DB.ref('games/'+GAME_ID).update(state);
+  try{
+    await DB.ref('games/'+GAME_ID).update(state);
+    _pushErrShown=false;
+  }catch(e){
+    console.error('Firebase push fehlgeschlagen:',e);
+    if(!_pushErrShown){
+      _pushErrShown=true;
+      showInfoBanner('⚠️','⚠️ Netzwerkfehler – Bitte Seite neu laden!',8000);
+    }
+  }
 }

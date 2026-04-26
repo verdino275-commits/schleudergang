@@ -24,8 +24,15 @@ function isBotTurn(){
   return G&&G.winner<0&&isBot(G.turn);
 }
 
-// Only Spieler 1 (MY_IDX===0) drives all bots
-function isBotDriver(){return adminAutoPlay||MY_IDX===0;}
+// Erster nicht-aufgegebener Mensch übernimmt Bot-Steuerung.
+// Fallback auf Spieler 0 wenn nur noch Bots übrig sind.
+function isBotDriver(){
+  if(adminAutoPlay)return true;
+  if(!G)return MY_IDX===0;
+  const firstHuman=G.players.findIndex((p,i)=>!p.quit&&!isBot(i));
+  if(firstHuman===-1)return MY_IDX===0;
+  return MY_IDX===firstHuman;
+}
 
 // Pick strongest opponent (highest pos), excluding self and quit players
 function strongestOpponent(){
@@ -45,7 +52,7 @@ function startBotWatchdog(){
   if(botWatchdog)return;
   botWatchdog=setInterval(()=>{
     if(!G||G.winner>=0){clearInterval(botWatchdog);botWatchdog=null;return;}
-    if(isBotDriver()&&isBotTurn()&&!botTimer){
+    if(isBotDriver()&&isBotTurn()&&!botTimer&&!_diceRolling&&!moveAnim&&!(moveAnimQueue&&moveAnimQueue.length)){
       console.warn('[Watchdog] Bot stuck, forcing trigger');
       runBotTurn();
     }
@@ -130,8 +137,12 @@ function runBotTurn(){
       return;
     }
     if(pen.type==='ssp_pick'){
-      const syms=['stein','schere','papier'];
-      onSSPPick(syms[Math.floor(Math.random()*3)]);
+      const botNeedsChalPick=isBot(G.turn)&&pen.chalPick==null;
+      const botNeedsDefPick=isBot(pen.defender)&&pen.defPick==null;
+      if(botNeedsChalPick||botNeedsDefPick){
+        const syms=['stein','schere','papier'];
+        onSSPPick(syms[Math.floor(Math.random()*3)]);
+      }
       return;
     }
     if(pen.type==='ssp_reveal'){

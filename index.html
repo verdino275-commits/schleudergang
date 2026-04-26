@@ -427,7 +427,6 @@ function onRoll(){disableBtn();const r=d6();_broadcastRoll(r,700,v=>{
   const p=G.players[G.turn];
   if(p.pos>=29&&p.pos<=33){G.phase='becher';handleBecher(v);return;}const np=moveTo(G.turn,p.pos+v);addLog(`${p.name} würfelt ${v}→${fn(np)}${v===6?' 🎲 Nochmal!':''}`);if(G.phase==='effect'){push();return;}
   if(v===6&&G.winner<0){if(G.players[G.turn]?.stats)G.players[G.turn].stats.sixes++;afterMove(G.turn);if(G.phase!=='effect'){G.phase='roll';addLog(`🎲 ${p.name} nochmal würfeln!`);notify('🎲','n_six_again',{n:{name:p.name,color:p.color}});}}else{afterMove(G.turn);}push();});}
-function onBecherRoll(){disableBtn();const r=d6();_broadcastRoll(r,700,v=>handleBecher(v));}
 function handleBecher(v){SFX.becher();const p=G.players[G.turn];if(p.pos===33){if(v===2){const hfp=p.pos;p.pos=34;startMoveAnim(hfp,34,G.turn);kick(G.turn,34);addLog(`${p.name} würfelt 2→Ziel🏆`);notify('🏆','n_becher2goal',{n:{name:p.name,color:p.color}});}else if(v===1){const hfp2=p.pos;p.pos=29;startMoveAnim(hfp2,29,G.turn);kick(G.turn,29);addLog(`${p.name} würfelt 1→B1!`);notify('😬','n_becher1back',{n:{name:p.name,color:p.color}});}else{if(p.stats)p.stats.becherStuck=(p.stats.becherStuck||0)+1;addLog(`${p.name} würfelt ${v}→wartet.`);notify('⏳','n_becher_wait',{n:{name:p.name,color:p.color}});}}else{if(v%2===0){const np=Math.min(34,p.pos+1);const hfp3=p.pos;p.pos=np;startMoveAnim(hfp3,np,G.turn);kick(G.turn,np);addLog(`${p.name} würfelt ${v}→${fn(np)}`);}else{if(p.stats)p.stats.becherStuck=(p.stats.becherStuck||0)+1;addLog(`${p.name} würfelt ${v}→bleibt.`);}}endPhase();push();}
 function onWinRoll(){disableBtn();const r=d6();_broadcastRoll(r,500,v=>{const wp=G.players[G.turn];addLog(`🏆 ${wp.name} würfelt ${v}→SIEG!`);notify('🏆','win_msg',{n:{name:wp.name,color:wp.color}});G.winner=G.turn;G.phase='done';push();});}
 function onTausch(di){const a=G.players[G.turn],b=G.players[di];const fromA=a.pos,fromB=b.pos;a.pos=fromB;b.pos=fromA;SFX.tausch();startMoveAnim(fromA,a.pos,G.turn);startMoveAnim(fromB,b.pos,di);kick(G.turn,a.pos);kick(di,b.pos);if(a.stats)a.stats.tausch++;if(b.stats)b.stats.tausch++;addLog(`🔄 ${a.name}↔${b.name}`);notify('🔄','n_tausch_done',{n:{name:a.name,color:a.color},n2:{name:b.name,color:b.color}});G.pending=null;endPhase();push();}
@@ -597,12 +596,13 @@ function onTaktStop(){
     }else{pen.type='takt_challenge';push();}
   }else if(pen.type==='takt_challenge'){
     if(MY_IDX===null||(pen.responses||{})[MY_IDX]!=null)return;
+    if((G.players[MY_IDX]?.pos??-1)<1)return;
     if(!pen.responses)pen.responses={};
     pen.responses[MY_IDX]=score;
     const _rp=G.players[MY_IDX];if(_rp?.stats)_rp.stats.taktBestScore=Math.max(_rp.stats.taktBestScore||0,score);
     addLog(`🎯 ${G.players[MY_IDX].name} stoppt bei ${score}Pkt`);
     push();
-    if(Object.keys(pen.responses).length>=pen.needed&&(MY_IDX===pen.challenger||isBotDriver()))resolveTakt();
+    if(Object.keys(pen.responses).length>=pen.needed)resolveTakt();
   }
 }
 
@@ -1027,7 +1027,7 @@ function dbgScenario(type){
       G.players[G.turn].pos=28;G.phase='roll';
       addLog('🛠 Debug: Becherzone-Szenario (vor B1)');break;
     case 'ziel':
-      G.players[G.turn].pos=33;G.phase='becher';
+      G.players[G.turn].pos=33;G.phase='roll';
       addLog('🛠 Debug: Ziel-Szenario (auf B5)');break;
     case 'reset':
       G.players.forEach(p=>{p.pos=-1;p.visitedSchlB=false;p.kickedToSchranke=false;});

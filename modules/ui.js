@@ -105,10 +105,9 @@ function updateUI(){
      (MY_IDX===G.turn||(isBotDriver()&&isBot(G.turn)))){
     resolveHerausWette();
   }
-  // Resolve takt when all responses are in - challenger's device (or bot driver) executes
+  // Resolve takt when all responses are in - watchdog: any device can trigger (resolveTakt is idempotent)
   if(G.pending?.type==='takt_challenge'&&
-     Object.keys(G.pending.responses||{}).length>=G.pending.needed&&
-     (MY_IDX===G.pending.challenger||isBotDriver())){
+     Object.keys(G.pending.responses||{}).length>=G.pending.needed){
     resolveTakt();
   }
   if(G.notification&&G.notification.ts>lastNotifTs){
@@ -215,7 +214,6 @@ function renderActions(){
   if(G.phase==='roll'){
     if(p.pos===34){dd.textContent='🏆';ab.innerHTML=`<div class="msg">${t('goal_field')}</div><button class="bbtn green dice" onclick="onWinRoll()">${t('win_roll')}</button>`;return;}
     dd.textContent='🎲';ab.innerHTML=`<button class="bbtn purple dice" onclick="onRoll()">${t('roll_dice')}</button>`;return;}
-  if(G.phase==='becher'){dd.textContent='🎲';const ex=p.pos===33?t('becher_rule_b5'):t('becher_rule');ab.innerHTML=`<div class="msg">${t('becher_field')} ${ex}</div><button class="bbtn orange dice" onclick="onBecherRoll()">${t('roll_becher')}</button>`;return;}
   if(G.phase==='effect'&&G.pending){
     const pen=G.pending;
     if(pen.type==='tausch'){

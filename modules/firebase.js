@@ -47,13 +47,17 @@ function renderChat(msgs){
 
 function escHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
+let _chatCd=false;
 async function sendChat(){
+  if(_chatCd)return;
   const inp=document.getElementById('chat-input');
   const txt=inp.value.trim();
   if(!txt||!GAME_ID||MY_IDX===null||!G)return;
   const p=G.players[MY_IDX];
   inp.value='';
   vibe(20);
+  _chatCd=true;
+  setTimeout(()=>_chatCd=false,500);
   await DB.ref('games/'+GAME_ID+'/chatMsgs').push({name:p.name,color:p.color,text:txt,ts:Date.now()});
 }
 
