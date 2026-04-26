@@ -1,0 +1,1332 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#0d0820">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Schleudergang">
+<link rel="manifest" id="pwa-manifest">
+<link rel="apple-touch-icon" id="apple-icon">
+<title>🎮 Schleudergang</title>
+<link rel="stylesheet" href="style.css">
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+<script src="./modules/i18n.js"></script>
+<script src="./modules/state.js"></script>
+<script src="./modules/audio.js"></script>
+</head>
+<body>
+
+<div id="s-land">
+  <div class="logo">🎮 SCHLEUDERGANG</div>
+  <div class="logo-sub">Das selbst erfundene Familien-Brettspiel</div>
+  <div class="card">
+    <div class="flabel">Spielernamen eingeben (2–5 Spieler):</div>
+    <div id="pinputs">
+      <div class="pi" id="pi1"><div class="pdot" style="background:#ef4444"></div><input type="text" placeholder="Spieler 1" maxlength="12"></div>
+      <div class="pi" id="pi2"><div class="pdot" style="background:#22c55e"></div><input type="text" placeholder="Spieler 2" maxlength="12"></div>
+    </div>
+    <button id="btn-add-p" onclick="addPI()">＋ Spieler hinzufügen</button>
+    <div class="divider"></div>
+    <button class="bbtn purple" onclick="createGame()">🎮 Spiel erstellen</button>
+  </div>
+  <div id="land-link" class="link-box hidden"></div>
+</div>
+
+<div id="s-join" class="hidden">
+  <div class="logo" style="margin-bottom:6px">🎮 SCHLEUDERGANG</div>
+  <div class="logo-sub">Wer bist du?</div>
+  <div id="join-btns"></div>
+</div>
+
+<div id="s-game">
+  <div id="left-col">
+  <div id="topbar">
+    <div class="game-title">🎮 SCHLEUDERGANG</div>
+    <div class="tbar-btns">
+
+      <span id="game-timer" class="hidden">⏱ 0:00</span>
+      <button class="icon-btn" onclick="location.reload()" title="Seite neu laden">🔄</button>
+      <div class="settings-wrap">
+        <button class="icon-btn" id="btn-settings" onclick="toggleSettingsMenu(event)" title="Einstellungen">⚙</button>
+        <div id="settings-menu" class="settings-menu hidden" onclick="event.stopPropagation()">
+          <button class="smenu-item" onclick="showLangMenu();closeSettingsMenu()"><span class="smenu-ic">🌐</span><span data-i18n-key="m_lang">Sprache</span></button>
+          <button class="smenu-item" onclick="shareLink();closeSettingsMenu()"><span class="smenu-ic">🔗</span><span data-i18n-key="m_share">Link teilen</span></button>
+          <button class="smenu-item" onclick="document.getElementById('rules-modal').classList.remove('hidden');closeSettingsMenu()"><span class="smenu-ic">ℹ</span><span data-i18n-key="m_rules">Regeln</span></button>
+          <button class="smenu-item" onclick="startTutorial();closeSettingsMenu()"><span class="smenu-ic">📖</span><span data-i18n-key="m_tut">Tutorial</span></button>
+          <div class="smenu-sep"></div>
+          <button class="smenu-item" id="btn-snd" onclick="toggleSfx()"><span class="smenu-ic">🔊</span><span data-i18n-key="m_sfx">Sound</span></button>
+          <button class="smenu-item" id="btn-mus" onclick="toggleMusic()"><span class="smenu-ic">🎵</span><span data-i18n-key="m_mus">Musik</span></button>
+          <button class="smenu-item" id="btn-mus-style" onclick="switchMusicStyle()"><span class="smenu-ic">🎵</span><span data-i18n-key="m_musstyle">Musikstil</span></button>
+        </div>
+      </div>
+      <button class="icon-btn" id="btn-quit" onclick="onQuit()" style="display:none;background:rgba(239,68,68,.18);border-color:rgba(239,68,68,.4);color:#fca5a5">🏳</button>
+      <button class="icon-btn" onclick="newGame()" title="Neu">↩</button>
+    </div>
+  </div>
+  <div id="board-wrap"><canvas id="cv"></canvas></div>
+  </div><!-- /left-col -->
+  <div id="right-col">
+  <div id="pbar"></div>
+  <div id="action-area">
+  <!-- Würfel-Zone: IMMER an dieser Position, fährt nur bei aktivem Wurf aus -->
+  <div id="ddisp-zone">
+    <div id="ddisp"></div>
+    <div id="ddisp-caption"></div>
+  </div>
+  <div id="info-banner" onclick="hideInfoBanner()">
+    <div class="ib-icon" id="ib-icon"></div>
+    <div class="ib-text" id="ib-text"></div>
+    <div class="ib-close">✕</div>
+    <div class="ib-bar" id="ib-bar"></div>
+  </div>
+  <div id="waiting-box" class="hidden"><div class="spinner"></div><div id="waiting-msg">⏳ Warte…</div></div>
+  <div id="abox"><div id="tlabel"></div><div id="abtns"></div></div>
+  </div><!-- /action-area -->
+  </div>
+  <!-- Log + Chat Tabs -->
+  <div id="lc-wrap">
+    <div id="lc-tabs">
+      <button id="tab-log" class="lc-tab active" onclick="switchTab('log')">📋 Spielverlauf</button>
+      <button id="tab-chat" class="lc-tab" onclick="switchTab('chat')">💬 Chat</button>
+    </div>
+    <div id="log-panel">
+      <div id="logbox"></div>
+    </div>
+    <div id="chat-panel" class="hidden">
+      <div id="chatbox"></div>
+      <div id="chat-input-wrap">
+        <input id="chat-input" type="text" placeholder="Nachricht schreiben…" maxlength="120" onkeydown="if(event.key==='Enter')sendChat()">
+        <button id="chat-send" onclick="sendChat()">➤</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="chat-toast">
+  <div class="toast-dot" id="toast-dot"></div>
+  <div class="toast-text">
+    <div class="toast-name" id="toast-name"></div>
+    <div class="toast-msg" id="toast-msg"></div>
+  </div>
+</div>
+<!-- DEBUG PANEL -->
+<div id="debug-panel">
+  <div class="dbg-header">
+    <div class="dbg-title">🛠 ADMIN DEBUG PANEL</div>
+    <button class="dbg-close" onclick="closeDebug()">✕ Schließen</button>
+  </div>
+
+  <!-- Spielstand Info -->
+  <div class="dbg-section">
+    <h4>📊 Aktueller Spielstand</h4>
+    <div id="dbg-status" class="dbg-status">Kein Spiel aktiv.</div>
+  </div>
+
+  <!-- Würfel erzwingen -->
+  <div class="dbg-section">
+    <h4>🎲 Würfelergebnis erzwingen</h4>
+    <div class="dbg-row">
+      <span class="dbg-label">Nächster Wurf:</span>
+      <input class="dbg-input" type="number" id="dbg-dice" min="1" max="6" value="6" style="max-width:60px">
+      <button class="dbg-btn cyan" onclick="dbgForceDice()">Setzen</button>
+      <button class="dbg-btn" onclick="dbgClearDice()">Reset</button>
+    </div>
+    <div id="dbg-dice-status" style="font-size:.75em;color:#9ca3af;margin-top:4px"></div>
+  </div>
+
+  <!-- Spieler teleportieren -->
+  <div class="dbg-section">
+    <h4>🚀 Spieler teleportieren</h4>
+    <div class="dbg-row">
+      <span class="dbg-label">Spieler:</span>
+      <select class="dbg-input" id="dbg-tp-player" style="max-width:140px"></select>
+    </div>
+    <div class="dbg-row">
+      <span class="dbg-label">Zu Feld:</span>
+      <input class="dbg-input" type="number" id="dbg-tp-field" min="-1" max="34" value="0" style="max-width:80px">
+      <button class="dbg-btn green" onclick="dbgTeleport()">Teleport!</button>
+    </div>
+    <div style="font-size:.72em;color:#6b7280;margin-top:2px">-1=Startteller, 0=Schranke, 10=SchlA, 14=Tausch, 22=SchlB, 29-33=Becher, 34=Ziel</div>
+  </div>
+
+  <!-- Spieler Flags -->
+  <div class="dbg-section">
+    <h4>🚩 Spieler Flags</h4>
+    <div id="dbg-flags"></div>
+  </div>
+
+  <!-- Zug übertragen -->
+  <div class="dbg-section">
+    <h4>🔄 Zug übertragen</h4>
+    <div class="dbg-row">
+      <span class="dbg-label">Spieler dran:</span>
+      <select class="dbg-input" id="dbg-turn-player" style="max-width:140px"></select>
+      <button class="dbg-btn orange" onclick="dbgSetTurn()">Setzen</button>
+    </div>
+  </div>
+
+  <!-- Schnell-Szenarien -->
+  <div class="dbg-section">
+    <h4>⚡ Aktionsfelder testen</h4>
+    <div class="dbg-scenario-btns">
+      <button class="dbg-btn cyan" onclick="dbgScenario('schranke')">🟣 Schrankenfeld (F0)</button>
+      <button class="dbg-btn cyan" onclick="dbgScenario('heraus')">⚔️ Herausforderung (F7)</button>
+      <button class="dbg-btn cyan" onclick="dbgScenario('schleuder')">🔴 Schleuderfeld B (F22)</button>
+      <button class="dbg-btn cyan" onclick="dbgScenario('abkuerzung')">✂️ Abkürzung (F10)</button>
+      <button class="dbg-btn cyan" onclick="dbgScenario('tausch')">🔄 Tauschfeld (F14)</button>
+      <button class="dbg-btn cyan" onclick="dbgScenario('ssp')">✂️ SSP-Feld (F16)</button>
+      <button class="dbg-btn cyan" onclick="dbgScenario('becher')">🏺 Becherzone (B1)</button>
+      <button class="dbg-btn cyan" onclick="dbgScenario('ziel')">🏆 Zielfeld (B5→Ziel)</button>
+    </div>
+  </div>
+  <!-- Utility -->
+  <div class="dbg-section">
+    <h4>🛠 Hilfsfunktionen</h4>
+    <div class="dbg-scenario-btns">
+      <button class="dbg-btn green" onclick="dbgScenario('advance')">🚀 Spieler 1 → F20</button>
+      <button class="dbg-btn orange" onclick="dbgScenario('win')">🏆 Spielende simulieren</button>
+      <button class="dbg-btn red" onclick="dbgScenario('reset')" style="grid-column:span 2">🔄 Alle zurück zum Start</button>
+    </div>
+  </div>
+  <!-- Schnelldurchlauf -->
+  <div class="dbg-section">
+    <h4>⚡ Schnelldurchlauf</h4>
+    <div class="dbg-scenario-btns">
+      <button class="dbg-btn cyan" onclick="startAdminAutoPlay()" style="grid-column:span 2">▶ Spiel komplett durchspielen</button>
+      <button class="dbg-btn green" onclick="dbgRandomTeleportAll()" style="grid-column:span 2">🎲 Alle Spieler zufällig verteilen (F1–F28)</button>
+    </div>
+    <div style="font-size:.72em;color:#6b7280;margin-top:4px">Spielt alle Züge automatisch durch bis zum Gewinner + Statistik.</div>
+  </div>
+</div>
+
+<!-- rematch screen removed -->
+
+<!-- Figure Picker Screen -->
+<div id="figure-screen">
+  <div class="fig-card">
+    <h3 id="fig-title">🎭 Wähle deine Spielfigur</h3>
+    <p id="fig-subtitle">Jede Figur kann nur einmal gewählt werden.</p>
+    <div class="fig-grid" id="fig-grid"></div>
+    <button class="bbtn purple" id="fig-confirm-btn" onclick="confirmFigure()" disabled>✓ Bestätigen</button>
+  </div>
+</div>
+<!-- Stats Screen -->
+<div id="stats-screen">
+  <div class="stats-card">
+    <div class="stats-title" id="stats-title">📊 Spielstatistiken</div>
+    <div class="stats-time" id="stats-time"></div>
+    <div id="stats-rows"></div>
+    <button class="bbtn purple" onclick="hideStats()" style="margin-top:12px" id="stats-close-btn">✓ OK</button>
+  </div>
+</div>
+<!-- Stats Screen -->
+<div id="stats-screen">
+  <div class="stats-card">
+    <div class="stats-title" id="stats-title">📊 Spielstatistiken</div>
+    <div class="stats-time" id="stats-time"></div>
+    <div id="stats-rows"></div>
+    <button class="bbtn purple" onclick="hideStats()" style="margin-top:12px" id="stats-close-btn">✓ OK</button>
+  </div>
+</div>
+<!-- Stats Screen -->
+<div id="stats-screen">
+  <div class="stats-card">
+    <div class="stats-title" id="stats-title">📊 Spielstatistiken</div>
+    <div class="stats-time" id="stats-time"></div>
+    <div id="stats-rows"></div>
+    <button class="bbtn purple" onclick="hideStats()" style="margin-top:12px" id="stats-close-btn">✓ OK</button>
+  </div>
+</div>
+<div id="win-screen"><div class="wcard"><div class="wtrophy">🏆</div><h2 id="wmsg"></h2>
+  <div id="win-actions" style="margin-top:8px"></div>
+</div></div>
+
+<div id="tut-overlay">
+  <div id="tut-spot"></div>
+  <div id="tut-card">
+    <div id="tut-step"></div>
+    <div id="tut-title"></div>
+    <p id="tut-body"></p>
+    <div class="tut-btns">
+      <button class="tut-next" id="tut-next-btn" onclick="nextTutStep()"></button>
+      <button class="tut-skip" id="tut-skip-btn" onclick="endTutorial()"></button>
+    </div>
+  </div>
+</div>
+
+<button id="emote-fab" onclick="toggleEmotePanel()" title="Emotes senden">😄</button>
+<div id="emote-panel">
+  <button class="epbtn" onclick="sendEmote('🎉')" title="Glückwunsch">🎉</button>
+  <button class="epbtn" onclick="sendEmote('😤')" title="Frustration">😤</button>
+  <button class="epbtn" onclick="sendEmote('🤝')" title="Good Game">🤝</button>
+  <button class="epbtn" onclick="sendEmote('😂')" title="Lustig">😂</button>
+  <button class="epbtn" onclick="sendEmote('😱')" title="Schock">😱</button>
+  <button class="epbtn" onclick="sendEmote('👋')" title="Hi">👋</button>
+  <button class="epbtn" onclick="sendEmote('💀')" title="RIP">💀</button>
+  <button class="epbtn" onclick="sendEmote('🔥')" title="Heiß">🔥</button>
+  <button class="epbtn" onclick="sendEmote('😎')" title="Cool">😎</button>
+  <button class="epbtn" onclick="sendEmote('😭')" title="Weinen">😭</button>
+  <button class="epbtn" onclick="sendEmote('🎯')" title="Treffer">🎯</button>
+  <button class="epbtn" onclick="sendEmote('🤬')" title="Wütend">🤬</button>
+  <button class="epbtn" onclick="sendEmote('😏')" title="Grinsen">😏</button>
+  <button class="epbtn" onclick="sendEmote('🙈')" title="Oops">🙈</button>
+  <button class="epbtn" onclick="sendEmote('🤦')" title="Facepalm">🤦</button>
+  <button class="epbtn" onclick="sendEmote('👑')" title="König">👑</button>
+</div>
+
+<div id="rules-modal" class="modal-bg hidden">
+  <div class="modal-card">
+    <h3>📋 Spielregeln</h3>
+    <div class="rule"></div><div class="rule"></div><div class="rule"></div>
+    <div class="rule"></div><div class="rule"></div><div class="rule"></div>
+    <div class="rule"></div><div class="rule"></div><div class="rule"></div>
+    <div class="rule"></div><div class="rule"></div><div class="rule"></div>
+    <div class="rule"></div><div class="rule"></div><div class="rule"></div>
+    <div class="rule"></div><div class="rule"></div><div class="rule"></div>
+    <br><button class="bbtn purple" onclick="document.getElementById('rules-modal').classList.add('hidden');updateRules()">✓ OK</button>
+  </div>
+</div>
+
+<script src="./modules/board.js"></script>
+<script src="./modules/animation.js"></script>
+<script src="./modules/gamelogic.js"></script>
+<script src="./modules/ui.js"></script>
+<script src="./modules/bot.js"></script>
+<script src="./modules/firebase.js"></script>
+<script>
+'use strict';
+
+// ── SOUND → modules/audio.js ─────────────────────────────────
+// ── BOARD → modules/board.js ─────────────────────────────────
+
+// ── CHAT + FIREBASE → modules/firebase.js ───────────────────
+
+// ── INFO BANNER + NOTIFY → modules/ui.js ────────────────────
+
+// ── CHAT NOTIFICATIONS + listenGame → modules/firebase.js ───
+
+// ── GAME LOGIC → modules/gamelogic.js ───────────────────────
+
+// ── ANIMATION → modules/animation.js ────────────────────────
+
+// ── TUTORIAL ─────────────────────────────────────────────────
+const TUT_STEPS=[
+  {title:'tut_0_title',body:'tut_0_body',spot:null},
+  {title:'tut_1_title',body:'tut_1_body',spot:{el:'#abox'}},
+  {title:'tut_2_title',body:'tut_2_body',spot:{el:'#board-wrap',rect:true}},
+  {title:'tut_3_title',body:'tut_3_body',spot:{fp:0}},
+  {title:'tut_takt_title',body:'tut_takt_body',spot:{fp:5}},
+  {title:'tut_4_title',body:'tut_4_body',spot:{fp:7}},
+  {title:'tut_5_title',body:'tut_5_body',spot:{fp:14}},
+  {title:'tut_6_title',body:'tut_6_body',spot:{fp:16}},
+  {title:'tut_7_title',body:'tut_7_body',spot:{fp:22}},
+  {title:'tut_8_title',body:'tut_8_body',spot:{fp:29,wide:true}},
+  {title:'tut_9_title',body:'tut_9_body',spot:{fp:34}},
+];
+let _tutStep=-1;
+
+function startTutorial(){
+  _tutStep=0;
+  const ov=document.getElementById('tut-overlay');
+  ov.classList.add('active');
+  _showTutStep();
+}
+
+function _showTutStep(){
+  const step=TUT_STEPS[_tutStep];
+  if(!step){endTutorial();return;}
+  document.getElementById('tut-title').textContent=t(step.title);
+  document.getElementById('tut-body').textContent=t(step.body);
+  document.getElementById('tut-step').textContent=`${_tutStep+1} / ${TUT_STEPS.length}`;
+  const isLast=_tutStep===TUT_STEPS.length-1;
+  document.getElementById('tut-next-btn').textContent=isLast?t('tut_btn_close'):t('tut_btn_next');
+  const skipBtn=document.getElementById('tut-skip-btn');
+  skipBtn.textContent=t('tut_btn_skip');
+  skipBtn.style.display=isLast?'none':'';
+  _posTut(step.spot);
+}
+
+function _posTut(sd){
+  const spot=document.getElementById('tut-spot');
+  const card=document.getElementById('tut-card');
+  const vw=window.innerWidth,vh=window.innerHeight;
+  const cardW=Math.min(290,vw-32),cardH=190;
+
+  if(!sd){
+    spot.style.display='none';
+    card.style.left=Math.max(16,(vw-cardW)/2)+'px';
+    card.style.top=Math.max(60,(vh-cardH)/2)+'px';
+    return;
+  }
+  spot.style.display='block';
+
+  let cx,cy,r,spotBot,spotTop;
+
+  if(sd.fp!==undefined){
+    const cvEl=document.getElementById('cv');
+    const rect=cvEl.getBoundingClientRect();
+    const fp=FP[sd.fp];
+    cx=rect.left+fp[0]*SC2;
+    cy=rect.top+fp[1]*SC2;
+    r=sd.wide?(FR*SC2*3.2):(FR*SC2*2);
+    spot.style.width=spot.style.height=(r*2)+'px';
+    spot.style.left=(cx-r)+'px';
+    spot.style.top=(cy-r)+'px';
+    spot.classList.remove('is-rect');
+    spotBot=cy+r+14;
+    spotTop=cy-r-14-cardH;
+  }else{
+    const el=document.querySelector(sd.el);
+    if(!el){spot.style.display='none';return;}
+    const rect=el.getBoundingClientRect();
+    cx=rect.left+rect.width/2;
+    cy=rect.top+rect.height/2;
+    const rw=rect.width+16,rh=rect.height+16;
+    spot.style.width=rw+'px';
+    spot.style.height=rh+'px';
+    spot.style.left=(cx-rw/2)+'px';
+    spot.style.top=(cy-rh/2)+'px';
+    if(sd.rect)spot.classList.add('is-rect');else spot.classList.remove('is-rect');
+    r=Math.max(rw,rh)/2;
+    spotBot=cy+rh/2+14;
+    spotTop=cy-rh/2-14-cardH;
+  }
+
+  const ty=(spotBot+cardH<vh-8)?spotBot:Math.max(8,spotTop);
+  const tx=Math.max(16,Math.min(cx-cardW/2,vw-cardW-16));
+  card.style.left=tx+'px';
+  card.style.top=ty+'px';
+}
+
+function nextTutStep(){
+  _tutStep++;
+  if(_tutStep>=TUT_STEPS.length){endTutorial();return;}
+  _showTutStep();
+}
+
+function endTutorial(){
+  _tutStep=-1;
+  const ov=document.getElementById('tut-overlay');
+  ov.classList.remove('active');
+  localStorage.setItem('sg_tut','1');
+}
+
+// ── EMOTES + DICE BROADCAST → modules/firebase.js ───────────
+
+// ── UI → modules/ui.js ──────────────────────────────────────
+
+// ── HANDLERS ────────────────────────────────────────────────
+function disableBtn(){document.querySelectorAll('#abtns button').forEach(b=>b.disabled=true);}
+function onStartRoll(){disableBtn();const r=d6();_broadcastRoll(r,700,v=>{const p=G.players[G.turn];if(v===6){const from=p.pos;p.pos=0;startMoveAnim(from,0,G.turn);clearSchranke(G.turn);addLog(`🎉 ${p.name} würfelt 6→Schrankenfeld!`);G.phase='schranken';if(G.turn===MY_IDX)notify('🎲','n_six_schranke',{n:{name:p.name,color:p.color}});}else{G.rollsLeft--;addLog(`${p.name} würfelt ${v}.`);if(G.rollsLeft<=0){addLog(`❌ Kein 6 in 3 Versuchen.`);endPhase();}}push();});}
+function onSchrankenRoll(){disableBtn();const r=d6();_broadcastRoll(r,700,v=>{const p=G.players[G.turn];if(v===1){const sp=p.pos;p.pos=-1;startMoveAnim(sp,-1,G.turn);addLog(`${p.name} würfelt 1→Start!`);endPhase();notify('↩','n_back_start',{n:{name:p.name,color:p.color}});}else{const np=moveTo(G.turn,v);addLog(`${p.name} würfelt ${v}→${fn(np)}`);afterMove(G.turn);}push();});}
+function onRoll(){disableBtn();const r=d6();_broadcastRoll(r,700,v=>{
+  const p=G.players[G.turn];
+  if(p.pos>=29&&p.pos<=33){G.phase='becher';handleBecher(v);return;}const np=moveTo(G.turn,p.pos+v);addLog(`${p.name} würfelt ${v}→${fn(np)}${v===6?' 🎲 Nochmal!':''}`);if(G.phase==='effect'){push();return;}
+  if(v===6&&G.winner<0){if(G.players[G.turn]?.stats)G.players[G.turn].stats.sixes++;afterMove(G.turn);if(G.phase!=='effect'){G.phase='roll';addLog(`🎲 ${p.name} nochmal würfeln!`);notify('🎲','n_six_again',{n:{name:p.name,color:p.color}});}}else{afterMove(G.turn);}push();});}
+function onBecherRoll(){disableBtn();const r=d6();_broadcastRoll(r,700,v=>handleBecher(v));}
+function handleBecher(v){SFX.becher();const p=G.players[G.turn];if(p.pos===33){if(v===2){const hfp=p.pos;p.pos=34;startMoveAnim(hfp,34,G.turn);kick(G.turn,34);addLog(`${p.name} würfelt 2→Ziel🏆`);notify('🏆','n_becher2goal',{n:{name:p.name,color:p.color}});}else if(v===1){const hfp2=p.pos;p.pos=29;startMoveAnim(hfp2,29,G.turn);kick(G.turn,29);addLog(`${p.name} würfelt 1→B1!`);notify('😬','n_becher1back',{n:{name:p.name,color:p.color}});}else{if(p.stats)p.stats.becherStuck=(p.stats.becherStuck||0)+1;addLog(`${p.name} würfelt ${v}→wartet.`);notify('⏳','n_becher_wait',{n:{name:p.name,color:p.color}});}}else{if(v%2===0){const np=Math.min(34,p.pos+1);const hfp3=p.pos;p.pos=np;startMoveAnim(hfp3,np,G.turn);kick(G.turn,np);addLog(`${p.name} würfelt ${v}→${fn(np)}`);}else{if(p.stats)p.stats.becherStuck=(p.stats.becherStuck||0)+1;addLog(`${p.name} würfelt ${v}→bleibt.`);}}endPhase();push();}
+function onWinRoll(){disableBtn();const r=d6();_broadcastRoll(r,500,v=>{const wp=G.players[G.turn];addLog(`🏆 ${wp.name} würfelt ${v}→SIEG!`);notify('🏆','win_msg',{n:{name:wp.name,color:wp.color}});G.winner=G.turn;G.phase='done';push();});}
+function onTausch(di){const a=G.players[G.turn],b=G.players[di];const fromA=a.pos,fromB=b.pos;a.pos=fromB;b.pos=fromA;SFX.tausch();startMoveAnim(fromA,a.pos,G.turn);startMoveAnim(fromB,b.pos,di);kick(G.turn,a.pos);kick(di,b.pos);if(a.stats)a.stats.tausch++;if(b.stats)b.stats.tausch++;addLog(`🔄 ${a.name}↔${b.name}`);notify('🔄','n_tausch_done',{n:{name:a.name,color:a.color},n2:{name:b.name,color:b.color}});G.pending=null;endPhase();push();}
+function onHC(di){
+  G.pending={type:'heraus_wette',defender:di,chalPick:null,defPick:null,ts:Date.now()};
+  const att=G.players[G.turn],def=G.players[di];
+  notify('⚔','n_hw_land',{n:{name:att.name,color:att.color},n2:{name:def.name,color:def.color}});
+  push();
+}
+let _hwTimerActive=false;
+function startHerausWetteTimer(){
+  if(_hwTimerActive)return;
+  _hwTimerActive=true;
+  setTimeout(()=>{
+    _hwTimerActive=false;
+    if(!G||!G.pending||G.pending.type!=='heraus_wette')return;
+    if(G.turn===MY_IDX&&G.pending.chalPick==null){G.pending.chalPick='niedrig';push();}
+    if(G.pending.defender===MY_IDX&&G.pending.defPick==null){G.pending.defPick='niedrig';push();}
+  },7000);
+}
+function onHerausWettePick(pick){
+  const pen=G.pending;
+  if(!pen||pen.type!=='heraus_wette')return;
+  SFX.click();
+  if(G.turn===MY_IDX&&pen.chalPick==null){pen.chalPick=pick;push();}
+  else if(pen.defender===MY_IDX&&pen.defPick==null){pen.defPick=pick;push();}
+}
+function applyHerausWetteResult(attIdx,defIdx,attDelta,defDelta){
+  const att=G.players[attIdx],def=G.players[defIdx];
+  if(attDelta>0){if(att.pos<34){const f=att.pos;att.pos++;startMoveAnim(f,att.pos,attIdx);kick(attIdx,att.pos);}}
+  else if(attDelta<0){if(att.pos>0){const f=att.pos;att.pos--;startMoveAnim(f,att.pos,attIdx);}}
+  if(defDelta>0){if(def.pos<34){const f=def.pos;def.pos++;startMoveAnim(f,def.pos,defIdx);kick(defIdx,def.pos);}}
+  else if(defDelta<0){if(def.pos>0){const f=def.pos;def.pos--;startMoveAnim(f,def.pos,defIdx);}}
+  if(attDelta>0&&att.stats)att.stats.duelsWon++;
+  if(attDelta<0&&att.stats)att.stats.duelsLost++;
+  if(defDelta>0&&def.stats)def.stats.duelsWon++;
+  if(defDelta<0&&def.stats)def.stats.duelsLost++;
+  addLog(`⚔ Wette: ${att.name}→${attDelta>0?'+1':'-1'}, ${def.name}→${defDelta>0?'+1':'-1'}`);
+}
+function resolveHerausWette(){
+  const pen=G.pending;
+  if(!pen||pen.type!=='heraus_wette')return;
+  pen.type='heraus_wette_roll';
+  const attIdx=G.turn,defIdx=pen.defender;
+  const chalPick=pen.chalPick||'niedrig',defPick=pen.defPick||'niedrig';
+  disableBtn();
+  const r=d6();
+  _broadcastRoll(r,700,v=>{
+    const isHoch=v>=4;
+    const cR=(chalPick==='hoch')===isHoch;
+    const dR=(defPick==='hoch')===isHoch;
+    const att=G.players[attIdx],def=G.players[defIdx];
+    if(cR&&!dR){
+      applyHerausWetteResult(attIdx,defIdx,+1,-1);
+      notify('⚔','n_hw_chal_wins',{n:{name:att.name,color:att.color},n2:{name:def.name,color:def.color},r1:v,s1:chalPick,s2:defPick});
+    }else if(dR&&!cR){
+      applyHerausWetteResult(attIdx,defIdx,-1,+1);
+      notify('⚔','n_hw_def_wins',{n:{name:att.name,color:att.color},n2:{name:def.name,color:def.color},r1:v,s1:chalPick,s2:defPick});
+    }else if(cR&&dR){
+      applyHerausWetteResult(attIdx,defIdx,+1,+1);
+      notify('⚔','n_hw_both_right',{n:{name:att.name,color:att.color},n2:{name:def.name,color:def.color},r1:v});
+    }else{
+      applyHerausWetteResult(attIdx,defIdx,-1,-1);
+      notify('⚔','n_hw_both_wrong',{n:{name:att.name,color:att.color},n2:{name:def.name,color:def.color},r1:v});
+    }
+    G.pending=null;endPhase();push();
+  });
+}
+function onHD(){
+  disableBtn();
+  const attIdx=G.turn, defIdx=G.pending.defender; // save indices, not object refs
+  const r1=d6(),r2=d6();
+  const att0=G.players[attIdx],def0=G.players[defIdx];
+  // Notify all players duel is starting
+  notify('⚔','n_duel_running',{n:{name:att0.name,color:att0.color},n2:{name:def0.name,color:def0.color}});
+  push();
+  // Resolve duel result with fresh G references (Firebase may replace G during animation)
+  function resolveDuel(){
+    const att=G.players[attIdx],def=G.players[defIdx];
+    if(r1>r2){
+      if(att.pos<34){const fp=att.pos;att.pos++;startMoveAnim(fp,att.pos,attIdx);kick(attIdx,att.pos);}
+      if(def.pos>0){const fp=def.pos;def.pos--;startMoveAnim(fp,def.pos,defIdx);kick(defIdx,def.pos);}
+      if(att.stats)att.stats.duelsWon++;
+      if(def.stats)def.stats.duelsLost++;
+      addLog(`⚔ ${att.name}(${r1}) gewinnt das Duell!`);
+      notify('⚔','n_duel_att_wins',{n:{name:att.name,color:att.color},n2:{name:def.name,color:def.color},r1,r2});
+      G.pending=null;endPhase();push();
+    }else if(r2>r1){
+      if(def.pos<34){const fp=def.pos;def.pos++;startMoveAnim(fp,def.pos,defIdx);kick(defIdx,def.pos);}
+      if(att.pos>0){const fp=att.pos;att.pos--;startMoveAnim(fp,att.pos,attIdx);kick(attIdx,att.pos);}
+      if(def.stats)def.stats.duelsWon++;
+      if(att.stats)att.stats.duelsLost++;
+      addLog(`⚔ ${def.name}(${r2}) gewinnt das Duell!`);
+      notify('⚔','n_duel_def_wins',{n:{name:att.name,color:att.color},n2:{name:def.name,color:def.color},r1,r2});
+      G.pending=null;endPhase();push();
+    }else{
+      addLog(`⚔ Gleichstand (${r1}:${r2}) – Duell wird wiederholt!`);
+      notify('⚔','n_duel_draw',{r1,r2});
+      push();
+    }
+  }
+  if(adminAutoPlay){setTimeout(resolveDuel,50);return;}
+  // Local dice animation
+  const dd=document.getElementById('ddisp');
+  const ab=document.getElementById('abtns');
+  let diceT=0;vibe(50);
+  const iv=setInterval(()=>{
+    diceT+=55;
+    const f1=FACES[~~(Math.random()*6)],f2=FACES[~~(Math.random()*6)];
+    dd.textContent=`${f1}⚔${f2}`;
+    ab.innerHTML=`<div style="font-size:2.2em;text-align:center;letter-spacing:8px;padding:12px 0">${f1} ⚔ ${f2}</div>`;
+    if(diceT>=900){
+      clearInterval(iv);
+      dd.textContent=`${FACES[r1-1]}⚔${FACES[r2-1]}`;
+      ab.innerHTML=`<div style="font-size:2.2em;text-align:center;letter-spacing:8px;padding:12px 0">${FACES[r1-1]} ⚔ ${FACES[r2-1]}</div>`;
+      setTimeout(resolveDuel,350);
+    }
+  },55);
+}
+// ── TAKTFELD ────────────────────────────────────────────────
+let _taktIV=null,_taktPos=0,_taktDir=1,_taktSpeed=1.2,_taktActive=false,_taktElapsed=0;
+
+function startTaktBar(){
+  if(_taktIV){clearInterval(_taktIV);_taktIV=null;}
+  _taktPos=0;_taktDir=1;_taktSpeed=1.2;_taktActive=true;_taktElapsed=0;
+  _taktIV=setInterval(()=>{
+    if(!_taktActive)return;
+    _taktElapsed+=16;
+    if(_taktElapsed%500<16)_taktSpeed=Math.min(2.5,_taktSpeed+0.15);
+    _taktPos+=_taktDir*_taktSpeed;
+    if(_taktPos>=100){_taktPos=100;_taktDir=-1;}
+    if(_taktPos<=0){_taktPos=0;_taktDir=1;}
+    const el=document.getElementById('takt-needle');
+    if(el)el.style.left=_taktPos+'%';
+  },16);
+}
+
+function stopTaktBar(){
+  _taktActive=false;
+  if(_taktIV){clearInterval(_taktIV);_taktIV=null;}
+}
+
+function calcTaktScore(pos){
+  return Math.max(0,Math.round(100-Math.abs(pos-50)*2.2));
+}
+
+function onTaktStop(){
+  if(!_taktActive||!G||!G.pending)return;
+  stopTaktBar();
+  vibe(40);
+  const score=calcTaktScore(_taktPos);
+  const pen=G.pending;
+  // Immediately clear the action area so user doesn't see stale bar while Firebase syncs
+  const ab=document.getElementById('abtns');
+  if(ab)ab.innerHTML=`<div class="msg" style="font-size:1.3em;text-align:center">🎯 <b>${score}</b> Punkte!</div><div class="msg" style="opacity:.7">⏳ Warte auf andere Spieler…</div>`;
+  if(pen.type==='takt_set'){
+    pen.challengerScore=score;
+    const _cp=G.players[pen.challenger];if(_cp?.stats)_cp.stats.taktBestScore=Math.max(_cp.stats.taktBestScore||0,score);
+    addLog(`🎯 ${G.players[pen.challenger].name} stoppt bei ${score}Pkt`);
+    if(pen.needed===0){
+      const p=G.players[pen.challenger];
+      const delta=score>=70?2:score>=35?1:-1;
+      p.pos=Math.max(0,Math.min(34,p.pos+delta));
+      addLog(`🎯 Solo-Ergebnis: ${delta>=0?'+':''}${delta} Felder`);
+      notify('🎯','n_takt_result',{n:{name:p.name,color:p.color}});
+      G.pending=null;endPhase();push();
+    }else{pen.type='takt_challenge';push();}
+  }else if(pen.type==='takt_challenge'){
+    if(MY_IDX===null||(pen.responses||{})[MY_IDX]!=null)return;
+    if(!pen.responses)pen.responses={};
+    pen.responses[MY_IDX]=score;
+    const _rp=G.players[MY_IDX];if(_rp?.stats)_rp.stats.taktBestScore=Math.max(_rp.stats.taktBestScore||0,score);
+    addLog(`🎯 ${G.players[MY_IDX].name} stoppt bei ${score}Pkt`);
+    push();
+    if(Object.keys(pen.responses).length>=pen.needed)resolveTakt();
+  }
+}
+
+function submitTaktScoreAsBot(botIdx,score,phase){
+  if(!G||!G.pending)return;
+  const pen=G.pending;
+  if(phase==='set'&&pen.type==='takt_set'){
+    pen.challengerScore=score;
+    const _bp=G.players[botIdx];if(_bp?.stats)_bp.stats.taktBestScore=Math.max(_bp.stats.taktBestScore||0,score);
+    addLog(`🎯 ${G.players[botIdx].name} stoppt bei ${score}Pkt (Bot)`);
+    if(pen.needed===0){
+      const p=G.players[botIdx];
+      const delta=score>=70?2:score>=35?1:-1;
+      p.pos=Math.max(0,Math.min(34,p.pos+delta));
+      addLog(`🎯 Solo-Ergebnis: ${delta>=0?'+':''}${delta} Felder`);
+      notify('🎯','n_takt_result',{n:{name:p.name,color:p.color}});
+      G.pending={type:'takt_result',challenger:botIdx,challengerScore:score,results:[]};
+      push();
+      if(isBotDriver()){
+        setTimeout(()=>{
+          if(G.pending&&G.pending.type==='takt_result'){G.pending=null;endPhase();push();}
+        },adminAutoPlay?100:3000);
+      }
+    }else{pen.type='takt_challenge';push();}
+  }else if(phase==='challenge'&&pen.type==='takt_challenge'){
+    if((pen.responses||{})[botIdx]!=null)return;
+    if(!pen.responses)pen.responses={};
+    pen.responses[botIdx]=score;
+    const _bc=G.players[botIdx];if(_bc?.stats)_bc.stats.taktBestScore=Math.max(_bc.stats.taktBestScore||0,score);
+    addLog(`🎯 ${G.players[botIdx].name} stoppt bei ${score}Pkt (Bot)`);
+    push();
+    if(Object.keys(pen.responses).length>=pen.needed)resolveTakt();
+  }
+}
+
+function resolveTakt(){
+  const pen=G.pending;
+  if(!pen||pen.type!=='takt_challenge')return;
+  const cIdx=pen.challenger,cScore=pen.challengerScore;
+  let cDelta=0;
+  const results=[];
+  Object.entries(pen.responses||{}).forEach(([is,score])=>{
+    const i=parseInt(is),p=G.players[i];
+    const won=score>cScore;
+    if(won){p.pos=Math.min(34,p.pos+1);cDelta--;addLog(`🎯 ${p.name}(${score}Pkt) schlägt Auslöser → +1`);}
+    else{p.pos=Math.max(0,p.pos-1);cDelta++;addLog(`🎯 ${p.name}(${score}Pkt) schlägt nicht → −1`);}
+    results.push({idx:i,score,won});
+  });
+  const cp=G.players[cIdx];
+  cp.pos=Math.max(0,Math.min(34,cp.pos+cDelta));
+  addLog(`🎯 ${cp.name}(Auslöser,${cScore}Pkt) → ${cDelta>=0?'+':''}${cDelta} Felder`);
+  notify('🎯','n_takt_result',{n:{name:cp.name,color:cp.color}});
+
+  // Store results in pending so all clients can display them
+  G.pending={type:'takt_result',challenger:cIdx,challengerScore:cScore,
+             results:results.map(r=>({idx:r.idx,score:r.score,won:r.won}))};
+  push();
+  // Only driver advances after 3s
+  if(isBotDriver()||MY_IDX===cIdx){
+    setTimeout(()=>{
+      if(G.pending&&G.pending.type==='takt_result'){G.pending=null;endPhase();push();}
+    },3000);
+  }
+}
+
+function onQuit(){
+  if(MY_IDX===null||!G)return;
+  const p=G.players[MY_IDX];
+  if(p.quit||G.winner>=0)return;
+  if(!confirm(`Wirklich aufgeben, ${p.name}? Du wirst aus dem Spiel entfernt.`))return;
+  p.quit=true;
+  addLog(`🏳 ${p.name} hat aufgegeben.`);
+  notify('🏳','n_quit',{n:{name:p.name,color:p.color}});
+  // Check if only 1 active player remains
+  const active=G.players.filter(pl=>!pl.quit);
+  if(active.length===1){
+    G.winner=G.players.indexOf(active[0]);
+    G.phase='done';
+    addLog(`🏆 ${active[0].name} gewinnt – alle anderen haben aufgegeben!`);
+    notify('🏆','n_all_quit_win',{n:{name:active[0].name,color:active[0].color}});
+    push();return;
+  }
+  if(active.length===0){push();return;}
+  // If it was this player's turn, advance immediately
+  if(G.turn===MY_IDX){G.pending=null;advanceTurn();}
+  push();
+}
+// ── SSP HANDLERS ────────────────────────────────────────────
+const SSP_BEATS={'stein':'schere','schere':'papier','papier':'stein'};
+// Touch-Geräte (Smartphone) zeigen 🪨, Desktop (Maus) zeigt ✊
+const STEIN_EMOJI=window.matchMedia('(pointer:coarse)').matches?'🪨':'✊';
+const SSP_EMOJI={'stein':STEIN_EMOJI,'schere':'✂️','papier':'📄'};
+
+function onSSPChoose(di){
+  G.pending={type:'ssp_pick',defender:di,chalPick:null,defPick:null};
+  const att=G.players[G.turn],def=G.players[di];
+  notify('✂️','n_ssp_challenge',{n:{name:att.name,color:att.color}});
+  push();
+}
+
+function onSSPPick(symbol){
+  if(!G||!G.pending||G.pending.type!=='ssp_pick')return;
+  // isChal: my turn OR bot driver driving a bot challenger
+  const isChal=G.turn===MY_IDX||(isBotDriver()&&isBot(G.turn));
+  // isDef: I am the defender OR bot driver driving a bot defender
+  const isDef=G.pending.defender===MY_IDX||(isBotDriver()&&isBot(G.pending.defender));
+  if(isChal&&G.pending.chalPick==null){SFX.click();G.pending.chalPick=symbol;push();}
+  else if(isDef&&G.pending.defPick==null){SFX.click();G.pending.defPick=symbol;push();}
+}
+
+async function resolveSSP(){
+  if(!G||!G.pending||G.pending.type!=='ssp_pick')return;
+  const pen=G.pending;
+  if(pen.chalPick==null||pen.defPick==null)return;
+  // Capture indices (not object refs!) so setTimeout can re-access fresh G state
+  const attIdx=G.turn, defIdx=pen.defender;
+  const cp=pen.chalPick,dp=pen.defPick;
+  const ce=SSP_EMOJI[cp],de=SSP_EMOJI[dp];
+  // Pre-compute outcome so all players see result immediately in reveal screen
+  let outcome;
+  if(SSP_BEATS[cp]===dp) outcome='chal_wins';
+  else if(SSP_BEATS[dp]===cp) outcome='def_wins';
+  else outcome='draw';
+  // Push reveal with outcome to all players
+  const att0=G.players[attIdx],def0=G.players[defIdx];
+  G.pending={type:'ssp_reveal',defender:defIdx,chalPick:cp,defPick:dp,outcome};
+  notify('✂️','n_ssp_reveal',{n:{name:att0.name,color:att0.color},n2:{name:def0.name,color:def0.color},s1:ce,s2:de});
+  await push(); // wait for Firebase commit so all clients receive ssp_reveal before countdown
+  // Countdown-Ticks während der Reveal-Wartezeit
+  if(!adminAutoPlay&&(MY_IDX===attIdx||MY_IDX===defIdx)){
+    [400,900,1400,1900,2400].forEach(d=>setTimeout(()=>SFX.sspTick(),d));
+  }
+  setTimeout(()=>{
+    if(!G||!G.pending||G.pending.type!=='ssp_reveal')return;
+    if(MY_IDX!==G.turn&&!(isBotDriver()&&isBot(G.turn)))return;
+    // Re-access fresh references from current G (Firebase may have replaced G since await push)
+    const att=G.players[attIdx],def=G.players[defIdx];
+    if(outcome==='chal_wins'){
+      if(att.stats)att.stats.sspWon++;if(def.stats)def.stats.sspLost++;
+      if(MY_IDX===attIdx)SFX.sspWin();else if(MY_IDX===defIdx)SFX.sspLose();
+      if(att.pos>=0&&att.pos<34){const fp=att.pos;att.pos=Math.min(34,att.pos+1);startMoveAnim(fp,att.pos,attIdx);kick(attIdx,att.pos);}
+      addLog(`✂️ SSP: ${att.name}(${ce}) schlägt ${def.name}(${de}) → ${att.name} +1!`);
+      notify('✂️','n_ssp_win_chal',{n:{name:att.name,color:att.color},n2:{name:def.name,color:def.color},s1:ce,s2:de});
+      G.pending=null;endPhase();push();
+    } else if(outcome==='def_wins'){
+      if(def.stats)def.stats.sspWon++;if(att.stats)att.stats.sspLost++;
+      if(MY_IDX===defIdx)SFX.sspWin();else if(MY_IDX===attIdx)SFX.sspLose();
+      addLog(`✂️ SSP: ${def.name}(${de}) schlägt ${att.name}(${ce}) → alle anderen +2!`);
+      notify('✂️','n_ssp_win_def',{n:{name:att.name,color:att.color},n2:{name:def.name,color:def.color},s1:ce,s2:de});
+      G.players.forEach((p,i)=>{
+        if(i===attIdx||p.quit||p.pos<0||p.pos>=34)return;
+        const fp=p.pos;p.pos=Math.min(34,p.pos+2);
+        startMoveAnim(fp,p.pos,i);kick(i,p.pos);
+      });
+      G.pending=null;endPhase();push();
+    } else {
+      SFX.sspTick();
+      addLog(`✂️ SSP: Unentschieden (${ce} vs ${de}) – nochmal!`);
+      notify('✂️','n_ssp_draw',{n:{name:att.name,color:att.color},n2:{name:def.name,color:def.color},s1:ce,s2:de});
+      G.pending={type:'ssp_pick',defender:defIdx,chalPick:null,defPick:null};
+      push();
+    }
+  },adminAutoPlay?50:3000);
+}
+
+function onSkip(){G.pending=null;endPhase();push();}
+function onNextTurn(){advanceTurn();push();}
+
+// ── SETUP/NAV ───────────────────────────────────────────────
+let pCount=0;
+function addPI(n=''){if(pCount>=5)return;pCount++;const d=document.createElement('div');d.className='pi';d.id=`pi${pCount}`;const rm=pCount>2?`<button class="rm" onclick="rmPI(${pCount})">✕</button>`:'';d.innerHTML=`<div class="pdot" style="background:${PCOLS[pCount-1]}"></div><input type="text" placeholder="Spieler ${pCount}" value="${n}" maxlength="12">${rm}`;document.getElementById('pinputs').appendChild(d);document.getElementById('btn-add-p').style.display=pCount>=5?'none':'';}
+function rmPI(i){const el=document.getElementById(`pi${i}`);if(el)el.remove();pCount--;document.getElementById('btn-add-p').style.display=pCount>=5?'none':'';}
+function initLanding(){
+  try{
+    const pi=document.getElementById('pinputs');
+    if(!pi)return;
+    pi.innerHTML='<div class="pi" id="pi1"><div class="pdot" style="background:#ef4444"></div><input type="text" placeholder="Spieler 1" maxlength="12"></div>'
+      +'<div class="pi" id="pi2"><div class="pdot" style="background:#22c55e"></div><input type="text" placeholder="Spieler 2" maxlength="12"></div>';
+    pCount=2;
+    document.getElementById('btn-add-p').style.display='';
+  }catch(e){console.error('initLanding error:',e);}
+}
+
+async function createGame(){
+  try{
+    if(!DB){alert('Keine Firebase-Verbindung. Bitte Seite neu laden.');return;}
+    const rawNames=[...document.querySelectorAll('#pinputs input')].map((el,i)=>el.value.trim()||`Spieler ${i+1}`);
+    if(rawNames.length<2){alert('Mindestens 2 Spieler!');return;}
+    // Duplikate nummerieren (z.B. BOT→BOT 1, BOT 2)
+    const nameCount={};
+    rawNames.forEach(n=>{const k=n.toLowerCase();nameCount[k]=(nameCount[k]||0)+1;});
+    const nameIdx={};
+    const names=rawNames.map(n=>{const k=n.toLowerCase();if(nameCount[k]>1){nameIdx[k]=(nameIdx[k]||0)+1;return n+' '+nameIdx[k];}return n;});
+    const id=genId();G=newState(names);await DB.ref('games/'+id).set(G);
+    GAME_ID=id;MY_IDX=0;localStorage.setItem('sg_p_'+id,'0');
+    const url=`${location.origin}${location.pathname}?g=${id}`;
+    window.history.pushState(null,'','?g='+id);
+    document.getElementById('land-link').classList.remove('hidden');
+    document.getElementById('land-link').innerHTML=`<b>✅ Spiel erstellt!</b><br>Einmal per WhatsApp teilen:<br><br><b style="word-break:break-all">${url}</b><br><br><button class="bbtn blue" onclick="copyGL('${url}')" style="margin-bottom:8px">📋 Link kopieren</button><button class="bbtn purple" onclick="onP1EnterGame()">▶ Spiel starten</button>`;
+  }catch(e){
+    console.error('createGame error:',e);
+    alert('Fehler: '+e.message);
+  }
+}
+function copyGL(u){if(navigator.clipboard)navigator.clipboard.writeText(u).then(()=>alert('✅ Kopiert!'));else alert(u);}
+function onP1EnterGame(){enterGame();}
+function enterGame(){showScreen('s-game');listenGame(GAME_ID);listenChat(GAME_ID);listenEmotes(GAME_ID);listenDice(GAME_ID);_lastDiceTs=0;sizeCV();updateUI();applyLang();startGameTimer();startBotWatchdog();setTimeout(assignBotFigures,500);_startPulseLoop();const ef=document.getElementById('emote-fab');if(ef)ef.style.display='block';if(!localStorage.getItem('sg_tut'))setTimeout(startTutorial,900);}
+function showJoinScreen(state){
+  showScreen('s-join');const jb=document.getElementById('join-btns');jb.innerHTML='';
+  state.players.forEach((p,i)=>{
+    const d=document.createElement('button');
+    d.className='jbtn';
+    d.type='button';
+    d.innerHTML=`<div class="jdot" style="background:${p.color}"></div><div class="jname">${p.name}${p.figure?' '+p.figure:''}</div>`;
+    function doSelect(e){
+      e.preventDefault();e.stopPropagation();
+      MY_IDX=i;localStorage.setItem('sg_p_'+GAME_ID,String(i));
+      enterGame();
+    }
+    d.addEventListener('click',doSelect);
+    d.addEventListener('touchend',doSelect,{passive:false});
+    jb.appendChild(d);
+  });
+}
+function shareLink(){const url=`${location.origin}${location.pathname}?g=${GAME_ID}`;if(navigator.share)navigator.share({title:'🎮 Schleudergang',url}).catch(()=>{});else if(navigator.clipboard)navigator.clipboard.writeText(url).then(()=>alert('✅ Link kopiert!'));else alert(url);}
+function showScreen(id){
+  ['s-land','s-join','s-game'].forEach(s=>{const el=document.getElementById(s);if(!el)return;el.classList.remove('hidden');el.style.display=s===id?'flex':'none';});
+  if(id==='s-game')document.getElementById('s-game').style.flexDirection='column';
+}
+function newGame(){_stopPulseLoop();moveAnimQueue=[];moveAnim=null;if(moveAnimRAF){cancelAnimationFrame(moveAnimRAF);moveAnimRAF=null;}stopGameTimer();hideStats();document.getElementById('figure-screen')?.classList.remove('show');if(botWatchdog){clearInterval(botWatchdog);botWatchdog=null;}
+  if(LISTENER){LISTENER();LISTENER=null;}
+  if(CHAT_LISTENER){CHAT_LISTENER();CHAT_LISTENER=null;}
+  if(EMOTE_LISTENER){EMOTE_LISTENER();EMOTE_LISTENER=null;}
+  if(DICE_LISTENER){DICE_LISTENER();DICE_LISTENER=null;}_lastDiceTs=0;
+  _emoteCd=false;
+  const ef=document.getElementById('emote-fab');if(ef){ef.style.display='none';ef.classList.remove('cd');ef.textContent='😄';}
+  document.getElementById('emote-panel')?.classList.remove('open');
+  unreadCount=0;lastMsgCount=0;
+  // Hide all overlays
+  ['win-screen','rematch-screen','debug-panel'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el){el.classList.remove('show');el.style.display='';}
+  });
+  G=null;GAME_ID=null;MY_IDX=null;
+  document.getElementById('land-link').classList.add('hidden');
+  window.history.pushState(null,'','?');
+  // Force show landing screen
+  ['s-land','s-join','s-game'].forEach(s=>{
+    const el=document.getElementById(s);
+    if(el)el.style.display=s==='s-land'?'flex':'none';
+  });
+  initLanding();
+}
+window.addEventListener('resize',()=>{if(G){sizeCV();renderBoard();}});
+// Mausrad scrollt Spielerleiste horizontal auf Desktop
+document.getElementById('pbar').addEventListener('wheel',e=>{if(e.deltaY!==0){e.preventDefault();e.currentTarget.scrollLeft+=e.deltaY;}},{passive:false});
+
+async function init(){
+  try{
+    const gid=new URLSearchParams(location.search).get('g');
+    if(!gid){showScreen('s-land');initLanding();return;}
+    if(!DB){showScreen('s-land');initLanding();alert('Keine Verbindung. Bitte Seite neu laden.');return;}
+    GAME_ID=gid;const snap=await DB.ref('games/'+gid).once('value');const state=snap.val();
+    if(!state){showScreen('s-land');initLanding();alert('Spiel nicht gefunden!');return;}
+    G=state;
+    // Spiel nach 3 Tagen als abgelaufen markieren und löschen
+    const THREE_DAYS=3*24*60*60*1000;
+    if(G.startedAt&&Date.now()-G.startedAt>THREE_DAYS){
+      DB.ref('games/'+gid).remove();
+      showScreen('s-land');initLanding();
+      alert('Dieses Spiel ist abgelaufen (älter als 3 Tage) und wurde gelöscht.');
+      return;
+    }
+    const stored=localStorage.getItem('sg_p_'+gid);
+    if(stored!==null){MY_IDX=parseInt(stored);enterGame();}else showJoinScreen(state);
+  }catch(e){
+    console.error('init error:',e);
+    showScreen('s-land');initLanding();
+  }
+}
+function onStartRematch(){
+  if(!G||!GAME_ID)return;
+  const players=G.players.map(p=>({name:p.name,color:p.color}));
+  const ns=newState(players.map(p=>p.name));
+  players.forEach((p,i)=>{ns.players[i].color=p.color;});
+  G=ns;
+  document.getElementById('win-screen').classList.remove('show');
+  const stored=localStorage.getItem('sg_p_'+GAME_ID);
+  if(stored!==null)MY_IDX=parseInt(stored);
+  push();
+  updateUI();
+}
+
+// ── BOT → modules/bot.js ────────────────────────────────────
+
+// ── DEBUG PANEL ─────────────────────────────────────────────
+let forcedDice=null;
+let dbgTapCount=0;
+let dbgTapTimer=null;
+
+// Secret activation: tap game title 5 times fast
+function initDebugTap(){
+  const title=document.querySelector('.game-title');
+  if(!title)return;
+  title.addEventListener('click',()=>{
+    dbgTapCount++;
+    if(dbgTapTimer)clearTimeout(dbgTapTimer);
+    dbgTapTimer=setTimeout(()=>dbgTapCount=0,2000);
+    if(dbgTapCount>=5){dbgTapCount=0;openDebug();}
+  });
+}
+
+function openDebug(){
+  if(!G){alert('Kein aktives Spiel!');return;}
+  updateDebugPanel();
+  document.getElementById('debug-panel').classList.add('show');
+}
+
+function closeDebug(){
+  document.getElementById('debug-panel').classList.remove('show');
+}
+function startAdminAutoPlay(){
+  if(!G||G.winner>=0){alert('Kein aktives Spiel!');return;}
+  adminAutoPlay=true;
+  closeDebug();
+  scheduleBotTurn();
+}
+function dbgRandomTeleportAll(){
+  if(!G){alert('Kein aktives Spiel!');return;}
+  G.players.forEach(p=>{
+    if(p.quit)return;
+    p.pos=Math.floor(Math.random()*28)+1; // F1–F28
+    p.kickedToSchranke=false;
+    p.visitedSchlB=false;
+  });
+  // Setze Phase auf 'roll' damit das Spiel sofort weiterläuft
+  G.phase='roll';G.pending=null;
+  updateUI();push();
+}
+
+function updateDebugPanel(){
+  if(!G)return;
+  // Status
+  const p=G.players[G.turn];
+  document.getElementById('dbg-status').innerHTML=
+    `Runde: Spieler ${G.turn+1} (${p?.name}) | Phase: ${G.phase}\n`+
+    G.players.map((pl,i)=>`  ${i===G.turn?'►':' '} ${pl.name}: Feld ${pl.pos<0?'Start':pl.pos} | visitedSchlB:${pl.visitedSchlB}`).join('\n');
+
+  // Player selects
+  const opts=G.players.map((pl,i)=>`<option value="${i}">${pl.name}</option>`).join('');
+  ['dbg-tp-player','dbg-turn-player'].forEach(id=>{
+    const el=document.getElementById(id);if(el)el.innerHTML=opts;
+  });
+
+  // Flags
+  const flagsEl=document.getElementById('dbg-flags');
+  if(flagsEl){
+    flagsEl.innerHTML=G.players.map((pl,i)=>`
+      <div class="dbg-player-row">
+        <div class="dbg-pdot" style="background:${pl.color}"></div>
+        <div class="dbg-pname">${pl.name}</div>
+        <div class="dbg-flags">
+          <span class="dbg-flag ${pl.visitedSchlB?'on':'off'}" onclick="dbgToggleFlag(${i},'visitedSchlB')" title="F22 schon besucht">visitedSchlB</span>
+          <span class="dbg-flag ${pl.kickedToSchranke?'on':'off'}" onclick="dbgToggleFlag(${i},'kickedToSchranke')" title="Via Rausschmiss auf Schranke">kickedToSchranke</span>
+        </div>
+      </div>`).join('');
+  }
+
+  // Dice status
+  const diceEl=document.getElementById('dbg-dice-status');
+  if(diceEl)diceEl.textContent=forcedDice?`⚡ Nächster Wurf erzwungen: ${forcedDice}`:'Kein Wurf erzwungen (normal)';
+}
+
+function dbgForceDice(){
+  const v=parseInt(document.getElementById('dbg-dice').value);
+  if(v>=1&&v<=6){forcedDice=v;updateDebugPanel();
+    showInfoBanner('🎲',`Debug: Nächster Wurf = ${v}`);}
+}
+function dbgClearDice(){forcedDice=null;updateDebugPanel();showInfoBanner('🎲','Debug: Würfel zurückgesetzt');}
+
+function dbgTeleport(){
+  if(!G)return;
+  const pi=parseInt(document.getElementById('dbg-tp-player').value);
+  const field=parseInt(document.getElementById('dbg-tp-field').value);
+  if(isNaN(pi)||isNaN(field))return;
+  G.players[pi].pos=Math.max(-1,Math.min(34,field));
+  addLog(`🛠 Debug: ${G.players[pi].name} → Feld ${field<0?'Startteller':field}`);
+  push();updateDebugPanel();showInfoBanner('🚀',`${G.players[pi].name} → Feld ${field<0?'Start':field}`);
+}
+
+function dbgToggleFlag(pi,flag){
+  if(!G)return;
+  G.players[pi][flag]=!G.players[pi][flag];
+  addLog(`🛠 Debug: ${G.players[pi].name}.${flag} = ${G.players[pi][flag]}`);
+  push();updateDebugPanel();
+}
+
+function dbgSetTurn(){
+  if(!G)return;
+  const ni=parseInt(document.getElementById('dbg-turn-player').value);
+  G.turn=ni;
+  const np=G.players[ni];
+  G.phase=np.pos<0?'start_roll':np.pos===0?'schranken':'roll';
+  G.rollsLeft=3;G.pending=null;
+  addLog(`🛠 Debug: Zug → ${np.name}`);
+  push();updateDebugPanel();showInfoBanner('🔄',`Debug: ${np.name} ist jetzt dran`);
+}
+
+function dbgScenario(type){
+  if(!G)return;
+  switch(type){
+    case 'schleuder':
+      G.players[G.turn].pos=9;G.phase='roll';
+      addLog('🛠 Debug: Schleuderfeld-Szenario (vor F22)');break;
+    case 'tausch':
+      G.players[G.turn].pos=13;G.phase='roll';
+      addLog('🛠 Debug: Tauschfeld-Szenario (vor F14)');break;
+    case 'heraus':
+      G.players[G.turn].pos=6;G.phase='roll';
+      addLog('🛠 Debug: Herausforderungs-Szenario (vor F7)');break;
+    case 'becher':
+      G.players[G.turn].pos=28;G.phase='roll';
+      addLog('🛠 Debug: Becherzone-Szenario (vor B1)');break;
+    case 'ziel':
+      G.players[G.turn].pos=33;G.phase='becher';
+      addLog('🛠 Debug: Ziel-Szenario (auf B5)');break;
+    case 'reset':
+      G.players.forEach(p=>{p.pos=-1;p.visitedSchlB=false;p.kickedToSchranke=false;});
+      G.turn=0;G.phase='start_roll';G.rollsLeft=3;G.pending=null;
+      addLog('🛠 Debug: Alle Spieler zurückgesetzt');break;
+    case 'schranke':
+      G.players[G.turn].pos=0;G.phase='schranken';G.players[G.turn].kickedToSchranke=false;
+      addLog('🛠 Debug: Schrankenfeld-Szenario');break;
+    case 'advance':
+      G.players[0].pos=20;G.phase='roll';
+      addLog('🛠 Debug: Spieler 1 → Feld 20');break;
+    case 'ssp':
+      G.players[G.turn].pos=16;G.phase='effect';G.pending={type:'ssp_choose'};
+      addLog('🛠 Debug: SSP-Szenario (F16)');break;
+    case 'win':
+      G.winner=G.turn;
+      G.phase='done';
+      G.rematch=null;
+      addLog(`🛠 Debug: ${G.players[G.turn].name} gewinnt (simuliert)`);
+      break;
+  }
+  push();updateDebugPanel();closeDebug();
+}
+
+// Hook into dice to allow forced values
+function d6(){return forcedDice!==null?(()=>{const v=forcedDice;forcedDice=null;updateDebugPanel&&updateDebugPanel();return v;})():_d6base();}
+
+// ── FIGURE PICKER ───────────────────────────────────────────
+const FIGURES=['🚀','👑','⚡','❤️','⭐','😈','🦄','⚔️','🐉','🎩','🌈','🦁','🎯','🔮','🦊','🐺'];
+let pendingFigureIdx=null;
+let selectedFigure=null;
+let pendingFigureCallback=null;
+
+function showFigurePicker(playerIdx, onConfirm){
+  pendingFigureIdx=playerIdx;
+  pendingFigureCallback=onConfirm||null;
+  selectedFigure=null;
+  const title=document.getElementById('fig-title');
+  const sub=document.getElementById('fig-subtitle');
+  const btn=document.getElementById('fig-confirm-btn');
+  if(title)title.textContent=t('fig_title');
+  if(sub)sub.textContent=t('fig_subtitle');
+  if(btn){btn.textContent=t('fig_confirm');btn.disabled=true;}
+  renderFigureGrid();
+  document.getElementById('figure-screen').classList.add('show');
+}
+
+function renderFigureGrid(){
+  const grid=document.getElementById('fig-grid');
+  if(!grid)return;
+  // Get taken figures from current game state
+  const taken={};
+  if(G&&G.players)G.players.forEach((p,i)=>{
+    if(p.figure&&i!==pendingFigureIdx)taken[p.figure]=p.name;
+  });
+  grid.innerHTML=FIGURES.map(f=>{
+    const isTaken=!!taken[f];
+    const isSelected=f===selectedFigure;
+    const owner=taken[f]?`<span class="fig-owner">${taken[f][0]}</span>`:'';
+    return `<button class="fig-btn${isTaken?' taken':''}${isSelected?' selected':''}" onclick="pickFigure('${f}')">${f}${owner}</button>`;
+  }).join('');
+}
+
+function pickFigure(fig){
+  selectedFigure=fig;
+  const btn=document.getElementById('fig-confirm-btn');
+  if(btn)btn.disabled=false;
+  renderFigureGrid();
+}
+function confirmFigure(){
+  if(!selectedFigure||pendingFigureIdx===null)return;
+  if(DB&&GAME_ID)DB.ref('games/'+GAME_ID+'/players/'+pendingFigureIdx+'/figure').set(selectedFigure);
+  document.getElementById('figure-screen').classList.remove('show');
+  if(G&&G.players[pendingFigureIdx])G.players[pendingFigureIdx].figure=selectedFigure;
+  const cb=pendingFigureCallback;pendingFigureCallback=null;
+  if(cb)cb();
+}
+
+// ── FIGURE PICKER ───────────────────────────────────────────
+// ── GAME TIMER ──────────────────────────────────────────────
+let timerInterval=null;
+function startGameTimer(){
+  if(timerInterval)clearInterval(timerInterval);
+  timerInterval=setInterval(updateGameTimer,1000);
+  updateGameTimer();
+}
+function stopGameTimer(){
+  if(timerInterval){clearInterval(timerInterval);timerInterval=null;}
+}
+function updateGameTimer(){
+  const el=document.getElementById('game-timer');
+  if(!el||!G||!G.startedAt)return;
+  const secs=Math.floor((Date.now()-G.startedAt)/1000);
+  const m=Math.floor(secs/60),s=secs%60;
+  el.textContent=`⏱ ${m}:${s.toString().padStart(2,'0')}`;
+  el.classList.remove('hidden');
+}
+function formatDuration(ms){
+  const secs=Math.floor(ms/1000);
+  const m=Math.floor(secs/60),s=secs%60;
+  return `${m}:${s.toString().padStart(2,'0')}`;
+}
+
+// ── STATS SCREEN ─────────────────────────────────────────────
+function showStats(){
+  if(!G)return;
+  const screen=document.getElementById('stats-screen');
+  if(!screen)return;
+
+  // Title
+  const titleEl=document.getElementById('stats-title');
+  if(titleEl)titleEl.textContent=t('stats_title');
+  const closeBtn=document.getElementById('stats-close-btn');
+  if(closeBtn)closeBtn.textContent=t('rules_ok');
+
+  // Duration
+  const dur=G.startedAt?formatDuration(Date.now()-G.startedAt):'--:--';
+  const timeEl=document.getElementById('stats-time');
+  if(timeEl)timeEl.innerHTML=`⏱ ${t('stats_duration')}: <b>${dur}</b>`;
+
+  // Build stat rows
+  const rows=document.getElementById('stats-rows');
+  if(!rows)return;
+  const ps=G.players;
+  const stats=[];
+
+  function best(fn,minVal=0){
+    let bVal=0,bIdx=-1;
+    ps.forEach((p,i)=>{const v=fn(p,i);if(v>=bVal){bVal=v;bIdx=i;}});
+    if(bIdx<0)return null;
+    return{p:ps[bIdx],val:bVal};
+  }
+
+  const statDefs=[
+    {key:'stats_most_kicked', fn:p=>p.stats?.kicked||0},
+    {key:'stats_most_got_kicked', fn:p=>p.stats?.gotKicked||0},
+    {key:'stats_duel_king', fn:p=>p.stats?.duelsWon||0},
+    {key:'stats_swap_master', fn:p=>p.stats?.tausch||0},
+    {key:'stats_ssp_king', fn:p=>p.stats?.sspWon||0},
+    {key:'stats_six_king', fn:p=>p.stats?.sixes||0},
+    {key:'stats_takt_maestro', fn:p=>p.stats?.taktBestScore||0, unit:'stats_points'},
+    {key:'stats_slung', fn:p=>p.stats?.slung||0},
+    {key:'stats_becher_stuck', fn:p=>p.stats?.becherStuck||0},
+  ];
+
+  rows.innerHTML=statDefs.map(def=>{
+    const res=best(def.fn);
+    if(!res)return`<div class="stat-row"><div class="stat-body"><div class="stat-label">${t(def.key)}</div><div class="stat-value" style="color:#6b7280">${t('stats_no_data')}</div></div></div>`;
+    return`<div class="stat-row">
+      <div class="stat-icon"><div style="width:12px;height:12px;border-radius:50%;background:${res.p.color};display:inline-block"></div></div>
+      <div class="stat-body">
+        <div class="stat-label">${t(def.key)}</div>
+        <div class="stat-value"><span style="color:${res.p.color}">${res.p.name}</span> – ${res.val} ${t(def.unit||'stats_times')}</div>
+      </div>
+    </div>`;
+  }).join('');
+
+  screen.classList.add('show');
+}
+
+function hideStats(){
+  const screen=document.getElementById('stats-screen');
+  if(screen)screen.classList.remove('show');
+}
+
+// ── GAME TIMER ──────────────────────────────────────────────
+
+try{init();}catch(e){console.error('init crash:',e);showScreen('s-land');initLanding();}
+try{initDebugTap();}catch(e){}
+
+
+// ── PWA SETUP ────────────────────────────────────────────────
+(function setupPWA(){
+  // Generate SVG icon as data URL
+  const svgIcon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+    <rect width="512" height="512" rx="100" fill="#0d0820"/>
+    <rect width="512" height="512" rx="100" fill="url(#g)"/>
+    <defs>
+      <radialGradient id="g" cx="40%" cy="30%">
+        <stop offset="0%" stop-color="#1e1040"/>
+        <stop offset="100%" stop-color="#06030f"/>
+      </radialGradient>
+    </defs>
+    <text x="256" y="300" font-size="280" text-anchor="middle" font-family="Arial">🎮</text>
+    <text x="256" y="430" font-size="72" text-anchor="middle" font-family="Arial" font-weight="bold" fill="#a855f7" letter-spacing="2">SCHLEUDER</text>
+  </svg>`;
+  const iconURL = 'data:image/svg+xml,' + encodeURIComponent(svgIcon);
+
+  // Set apple touch icon
+  const appleIcon = document.getElementById('apple-icon');
+  if(appleIcon) appleIcon.href = iconURL;
+
+  // Create and inject manifest
+  const manifest = {
+    name: "Schleudergang",
+    short_name: "Schleudergang",
+    description: "Das selbst erfundene Familien-Brettspiel",
+    start_url: window.location.href.split('?')[0],
+    display: "standalone",
+    background_color: "#0d0820",
+    theme_color: "#0d0820",
+    orientation: "portrait-primary",
+    icons: [
+      {src: iconURL, sizes: "192x192", type: "image/svg+xml"},
+      {src: iconURL, sizes: "512x512", type: "image/svg+xml", purpose: "any maskable"}
+    ]
+  };
+  const blob = new Blob([JSON.stringify(manifest)], {type:'application/json'});
+  const manifestURL = URL.createObjectURL(blob);
+  const manifestEl = document.getElementById('pwa-manifest');
+  if(manifestEl) manifestEl.href = manifestURL;
+
+  // Register Service Worker (sw.js)
+  if('serviceWorker' in navigator){
+    navigator.serviceWorker.register('./sw.js').then(reg => {
+      // Check for updates every 60 seconds
+      setInterval(() => reg.update(), 60000);
+      reg.addEventListener('updatefound', () => {
+        const nw = reg.installing;
+        nw.addEventListener('statechange', () => {
+          if(nw.state === 'installed' && navigator.serviceWorker.controller){
+            showUpdateBanner(nw);
+          }
+        });
+      });
+    }).catch(()=>{});
+  }
+
+
+  function showUpdateBanner(worker){
+    const b = document.createElement('div');
+    b.style.cssText = `position:fixed;top:0;left:0;right:0;background:linear-gradient(135deg,#065f46,#064e3b);
+      border-bottom:1.5px solid rgba(52,211,153,.4);padding:12px 18px;
+      display:flex;align-items:center;gap:12px;z-index:600;
+      box-shadow:0 4px 20px rgba(0,0,0,.5)`;
+    b.innerHTML = `
+      <span style="font-size:1.4em">🆕</span>
+      <div style="flex:1;font-size:.85em;color:#d1fae5;font-weight:600">Neue Version verfügbar!</div>
+      <button onclick="this.closest('div').remove();worker.postMessage('skipWaiting');location.reload();"
+        style="background:linear-gradient(135deg,#22c55e,#15803d);border:none;border-radius:9px;
+        color:#fff;padding:8px 14px;font-weight:700;font-size:.85em;cursor:pointer">Jetzt aktualisieren</button>
+      <button onclick="this.closest('div').remove()"
+        style="background:transparent;border:none;color:#6ee7b7;font-size:1.1em;cursor:pointer">✕</button>`;
+    document.body.appendChild(b);
+  }
+})();
+
+</script>
+
+<!-- Language Menu -->
+<div id="lang-menu" style="display:none;position:fixed;top:50px;right:14px;background:#1a1035;border:1.5px solid rgba(168,85,247,.4);border-radius:14px;padding:14px;z-index:700;box-shadow:0 8px 32px rgba(0,0,0,.6)">
+  <div style="font-size:.8em;color:#9ca3af;margin-bottom:10px;font-weight:600">🌐 Sprache / Language</div>
+  <div style="display:flex;flex-direction:column;gap:8px">
+    <button class="lang-btn" data-lang="de" onclick="setLang('de');hideLangMenu()">🇩🇪 Deutsch</button>
+    <button class="lang-btn" data-lang="it" onclick="setLang('it');hideLangMenu()">🇮🇹 Italiano</button>
+    <button class="lang-btn" data-lang="en" onclick="setLang('en');hideLangMenu()">🇬🇧 English</button>
+    <button class="lang-btn" data-lang="sk" onclick="setLang('sk');hideLangMenu()">🇸🇰 Slovenčina</button>
+  </div>
+</div>
+<!-- Independent safety net - runs even if main script crashes -->
+<script>
+(function(){
+  function ensureLanding(){
+    var pinputs=document.getElementById('pinputs');
+    var sLand=document.getElementById('s-land');
+    if(!pinputs||!sLand)return;
+    var gameScreen=document.getElementById('s-game');
+    var joinScreen=document.getElementById('s-join');
+    var gameVisible=gameScreen&&gameScreen.style.display==='flex';
+    var joinVisible=joinScreen&&joinScreen.style.display==='flex';
+    if(!gameVisible&&!joinVisible&&pinputs.children.length===0){
+      console.warn('[SafetyNet] triggered');
+      sLand.style.display='flex';
+      // Try initLanding - separate try/catch so fallback always runs if needed
+      try{ if(typeof initLanding==='function')initLanding(); }catch(e){ console.warn('[SafetyNet] initLanding failed:',e); }
+      // Hard fallback if still empty
+      if(pinputs.children.length===0){
+        console.warn('[SafetyNet] hard fallback');
+        var colors=['#ef4444','#22c55e'];
+        pinputs.innerHTML='';
+        for(var i=0;i<2;i++){
+          var d=document.createElement('div');
+          d.className='pi';
+          d.innerHTML='<div class="pdot" style="background:'+colors[i]+'"></div>'
+            +'<input type="text" placeholder="Spieler '+(i+1)+'" maxlength="12">';
+          pinputs.appendChild(d);
+        }
+      }
+    }
+  }
+  // Run at multiple points to catch any timing issue
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded',function(){setTimeout(ensureLanding,300);});
+  } else {
+    setTimeout(ensureLanding,300);
+  }
+  setTimeout(ensureLanding,1000);
+  setTimeout(ensureLanding,2500);
+})();
+</script>
+</body>
+</html>
